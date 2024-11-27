@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "318003575454",
+    "project_id": "tipsyapp-c8bff",
+    "storage_bucket": "tipsyapp-c8bff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318003575454:android:667037837d31b766a4598f",
+        "android_client_info": {
+          "package_name": "com.social.flutter_tipsy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAglCtpzZNidx5W4ehxCl5-1YMfArDDki8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318003575454:android:0ad84c3bc808f34ca4598f",
+        "android_client_info": {
+          "package_name": "com.social.tipsy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAglCtpzZNidx5W4ehxCl5-1YMfArDDki8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
