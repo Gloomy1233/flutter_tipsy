@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../screens/home_screens/user_screens/search_event_screen.dart';
+
 // Colors
 const Color primaryDark = Color(0xFF262838);
 const Color primaryDarkLighter = Color(0xFF3A3C4E);
@@ -36,3 +38,36 @@ final Map<String, IconData> sexIconMap = {
   "Female": Icons.female_sharp,
   "Other": Icons.transgender_sharp,
 };
+
+var iconsMainScreenHost = <Widget>[
+  const Icon(Icons.block, size: 30, color: Colors.white),
+  const Icon(Icons.query_stats_sharp, size: 30, color: Colors.white),
+  const Icon(Icons.event, size: 30, color: Colors.white),
+  const Icon(Icons.book_rounded, size: 30, color: Colors.white),
+  const Icon(Icons.swap_horiz_sharp, size: 30, color: Colors.white),
+];
+
+const screensMainScreenHost = [
+  Center(child: Text("Blocked Users", style: TextStyle(fontSize: 24))),
+  Center(child: Text("Statistics", style: TextStyle(fontSize: 24))),
+  Center(child: Text("Create Event", style: TextStyle(fontSize: 24))),
+  Center(child: Text("Organizer", style: TextStyle(fontSize: 24))),
+  Center(child: Text("Swap User", style: TextStyle(fontSize: 24))),
+];
+
+// Initial Screens and Icons
+List<Widget> screensMainScreenGuest = [
+  const Center(child: Text("Interactions", style: TextStyle(fontSize: 24))),
+  const Center(child: Text("Event History", style: TextStyle(fontSize: 24))),
+  const SearchEventScreen(),
+  const Center(child: Text("Follows", style: TextStyle(fontSize: 24))),
+  const Center(child: Text("Swap User", style: TextStyle(fontSize: 24))),
+];
+
+var iconsMainScreenGuest = <Widget>[
+  const Icon(Icons.people, size: 30, color: Colors.white),
+  const Icon(Icons.history, size: 30, color: Colors.white),
+  const Icon(Icons.search, size: 30, color: Colors.white),
+  const Icon(Icons.accessibility_outlined, size: 30, color: Colors.white),
+  const Icon(Icons.swap_horiz_sharp, size: 30, color: Colors.white),
+];

@@ -97,8 +97,9 @@ class _Step3ScreenState extends State<Step3Screen> {
                             ),
                           ),
 
-                          const AnimatedGradientIcon(
-                            icon: Icons.date_range_sharp,
+                          const Icon(
+                            Icons.date_range_sharp,
+                            color: primaryPink,
                           ),
 
                           // Spacing between icon and label
@@ -126,7 +127,13 @@ class _Step3ScreenState extends State<Step3Screen> {
                                 String formattedDate =
                                     "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
                                 dateOfBirthController.text = formattedDate;
-                                viewModel.dateOfBirth = formattedDate;
+                                //viewModel.dateOfBirth = formattedDate;
+                                viewModel.setDate(
+                                    DateTime.parse(formattedDate)
+                                        .microsecondsSinceEpoch,
+                                    formattedDate);
+                                print(
+                                    "afaffsfa${viewModel.dateOfBirth}${viewModel.timestampOfBirth}");
                               });
                             }
                           },
@@ -165,8 +172,9 @@ class _Step3ScreenState extends State<Step3Screen> {
                     value: sex,
                     child: Row(
                       children: [
-                        AnimatedGradientIcon(
-                          icon: sexIconMap[sex] ?? Icons.help_outline,
+                        Icon(
+                          sexIconMap[sex] ?? Icons.help_outline,
+                          color: primaryPink, // Use a static color or gradient
                         ),
                         SizedBox(width: 10.w),
                         ShaderMask(
@@ -224,9 +232,9 @@ class _Step3ScreenState extends State<Step3Screen> {
                     value: status,
                     child: Row(
                       children: [
-                        AnimatedGradientIcon(
-                          icon: statusOptionsIconMap[status] ??
-                              Icons.help_outline,
+                        Icon(
+                          statusOptionsIconMap[status] ?? Icons.help_outline,
+                          color: primaryPink,
                         ),
                         SizedBox(width: 10.w),
                         ShaderMask(
@@ -276,19 +284,56 @@ class _Step3ScreenState extends State<Step3Screen> {
                 ),
               ),
             ),
+            // const SizedBox(height: 16),
+            // // Bio TextField
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: 4.w),
+            //   child: Container(
+            //     padding: EdgeInsets.symmetric(horizontal: 4.w),
+            //     decoration: BoxDecoration(
+            //       color: primaryDarkLighter,
+            //       borderRadius: BorderRadius.circular(
+            //           4.0), // Optional: for rounded corners
+            //     ),
+            //     child: Column(
+            //       crossAxisAlignment: CrossAxisAlignment.start,
+            //       children: [
+            //         Padding(
+            //           padding: const EdgeInsets.all(8.0),
+            //           child: Text(
+            //             "Bio",
+            //             style: TextStyle(
+            //               color: primaryOrange,
+            //               fontSize: 8.sp,
+            //               fontWeight: FontWeight.w100,
+            //             ),
+            //           ),
+            //         ),
+            //         TextFormField(
+            //           controller: bioController,
+            //           maxLines: 5,
+            //           style: TextStyle(
+            //             fontWeight: FontWeight.bold,
+            //             foreground: Paint()
+            //               ..shader = gradient.createShader(
+            //                 const Rect.fromLTRB(0, 0, 200.0,
+            //                     70.0), // Adjust dimensions as needed
+            //               ),
+            //           ),
+            //           onChanged: (value) {
+            //             viewModel.bio = value; // Update the ViewModel or state
+            //           },
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
+
             const SizedBox(height: 16),
-            // Bio TextField
-            TextFormField(
+            DynamicBioField(
               controller: bioController,
-              decoration: const InputDecoration(
-                labelText: "Bio",
-              ),
-              maxLines: 5,
-              onChanged: (value) {
-                viewModel.bio = value;
-              },
-            ),
-            const SizedBox(height: 16),
+              maxCharacters: 200, // Set maximum characters
+            )
           ],
         ),
       ),
@@ -296,56 +341,136 @@ class _Step3ScreenState extends State<Step3Screen> {
   }
 }
 
-class AnimatedGradientIcon extends StatefulWidget {
-  final IconData icon;
+class DynamicBioField extends StatefulWidget {
+  final TextEditingController controller;
+  final int maxCharacters;
 
-  const AnimatedGradientIcon({
-    super.key,
-    required this.icon,
-  });
+  const DynamicBioField({
+    Key? key,
+    required this.controller,
+    this.maxCharacters = 200,
+  }) : super(key: key);
 
   @override
-  _AnimatedGradientIconState createState() => _AnimatedGradientIconState();
+  _DynamicBioFieldState createState() => _DynamicBioFieldState();
 }
 
-class _AnimatedGradientIconState extends State<AnimatedGradientIcon>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+class _DynamicBioFieldState extends State<DynamicBioField> {
+  int characterCount = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
-
-    _animation = Tween<double>(begin: -2.0, end: 2.0).animate(_controller);
+  void _updateCharacterCount(String value) {
+    setState(() {
+      characterCount = value.length;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final Gradient gradient = LinearGradient(
-      colors: const [gradientOrange, primaryPink],
-      begin: Alignment(_animation.value, -1.0),
-      end: Alignment(-_animation.value, 1.0),
-    );
+    final viewModel = Provider.of<RegistrationViewModel>(context);
 
-    return ShaderMask(
-      shaderCallback: (Rect bounds) {
-        return gradient.createShader(bounds);
-      },
-      child: Icon(
-        widget.icon,
-        color: Colors.white,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4.w),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        decoration: BoxDecoration(
+          color: primaryDarkLighter,
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Label
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Bio",
+                style: TextStyle(
+                  color: primaryOrange,
+                  fontSize: 8.sp,
+                  fontWeight: FontWeight.w100,
+                ),
+              ),
+            ),
+            // Bio Input Field
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: 5.h, // Minimum height of the field
+                maxHeight: 50.h, // Maximum height allowed
+              ),
+              child: TextFormField(
+                controller: widget.controller,
+                maxLines: null, // Allow dynamic expansion
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  foreground: Paint()
+                    ..shader = gradient.createShader(
+                      const Rect.fromLTRB(0, 0, 200.0, 70.0),
+                    ),
+                ),
+                onChanged: (value) {
+                  // Prevent exceeding the max character limit
+                  if (value.length > widget.maxCharacters) {
+                    widget.controller.text =
+                        value.substring(0, widget.maxCharacters);
+                    widget.controller.selection = TextSelection.fromPosition(
+                      TextPosition(offset: widget.maxCharacters),
+                    );
+                  }
+                  _updateCharacterCount(widget
+                      .controller.text); // Update character count dynamically
+                },
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Character Counter
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                '$characterCount/${widget.maxCharacters} characters',
+                style: TextStyle(
+                  color: Colors.white, // Highlight when exceeding the limit
+                  fontSize: 10.sp,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class AnimatedGradientIcon extends StatelessWidget {
+  final IconData icon;
+
+  const AnimatedGradientIcon({super.key, required this.icon});
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: -2.0, end: 2.0),
+      duration: const Duration(seconds: 3),
+      builder: (context, double value, child) {
+        final Gradient gradient = LinearGradient(
+          colors: const [gradientOrange, primaryPink],
+          begin: Alignment(value, -1.0),
+          end: Alignment(-value, 1.0),
+        );
+
+        return ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return gradient.createShader(bounds);
+          },
+          child: Icon(
+            icon,
+            color: Colors.white,
+          ),
+        );
+      },
+    );
   }
 }

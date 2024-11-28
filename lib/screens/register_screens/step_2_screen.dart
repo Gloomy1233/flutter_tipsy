@@ -1,5 +1,6 @@
 // screens/step2_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/widgets/app_theme_text_form_field.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
 
@@ -28,17 +29,6 @@ class _Step2ScreenState extends State<Step2Screen> {
   // Key for the "Repeat Password" field to access its FormFieldState
   final _repeatPasswordKey = GlobalKey<FormFieldState>();
 
-  TextStyle gradientTextStyle() {
-    return TextStyle(
-      fontSize: 16.0,
-      fontWeight: FontWeight.normal,
-      foreground: Paint()
-        ..shader = gradient.createShader(
-          Rect.fromLTWH(0.0, 0.0, MediaQuery.of(context).size.width, 24),
-        ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -53,18 +43,14 @@ class _Step2ScreenState extends State<Step2Screen> {
 
     // Listener for the password field
     _passwordController.addListener(() {
-      setState(() {
-        viewModel.password = _passwordController.text;
-        // Re-validate the "Repeat Password" field whenever the password changes
-        _repeatPasswordKey.currentState?.validate();
-      });
+      viewModel.password = _passwordController.text;
+      // Re-validate the "Repeat Password" field whenever the password changes
+      _repeatPasswordKey.currentState?.validate();
     });
 
     // Listener for the repeat password field
     _repeatPasswordController.addListener(() {
-      setState(() {
-        viewModel.repeatPassword = _repeatPasswordController.text;
-      });
+      viewModel.repeatPassword = _repeatPasswordController.text;
     });
   }
 
@@ -97,127 +83,43 @@ class _Step2ScreenState extends State<Step2Screen> {
             ),
             const SizedBox(height: 16.0),
             // Full Name Field
-            TextFormField(
-              initialValue: viewModel.fullName,
+            AppThemeTextFormField(
+              controller: TextEditingController(text: viewModel.fullName),
+              labelText: 'Full Name*',
               onChanged: (value) => viewModel.setFullName(value),
-              decoration: InputDecoration(
-                labelText: 'Full Name*',
-                labelStyle: TextStyle(
-                    foreground: Paint()
-                      ..shader = gradient.createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                      ),
-                    backgroundColor: primaryDarkLighter,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryDark),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryOrange, width: 2.0),
-                ),
-                errorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                errorStyle: const TextStyle(
-                  color: Colors.red,
-                ),
-                filled: true,
-                fillColor: primaryDarkLighter,
-
-                // ... (rest of your decoration)
-              ),
-              style: gradientTextStyle(),
-              // ... (rest of your code for this field)
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your full name';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16.0),
             // Email Field
-            TextFormField(
-              initialValue: viewModel.email,
+            AppThemeTextFormField(
+              controller: TextEditingController(text: viewModel.email),
+              labelText: 'E-mail*',
+              keyboardType: TextInputType.emailAddress,
               onChanged: (value) => viewModel.setEmail(value),
-              decoration: InputDecoration(
-                labelText: 'E-mail*',
-                labelStyle: TextStyle(
-                    foreground: Paint()
-                      ..shader = gradient.createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                      ),
-                    backgroundColor: primaryDarkLighter,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryDark),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryOrange, width: 2.0),
-                ),
-                errorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                errorStyle: const TextStyle(
-                  color: Colors.red,
-                ),
-                filled: true,
-                fillColor: primaryDarkLighter,
-              ),
-              style: gradientTextStyle(),
-              // ... (rest of your code for this field)
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your email';
+                } else if (!RegExp(
+                        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+                        r"[a-zA-Z0-9]+\.[a-zA-Z]+")
+                    .hasMatch(value)) {
+                  return 'Please enter a valid email address';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16.0),
             // Password Field
-            TextFormField(
+            AppThemeTextFormField(
               controller: _passwordController,
-              onChanged: (value) => viewModel.setPassword(value),
-              decoration: InputDecoration(
-                labelText: 'Password*',
-                // ... (rest of your decoration)
-                labelStyle: TextStyle(
-                    foreground: Paint()
-                      ..shader = gradient.createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                      ),
-                    backgroundColor: primaryDarkLighter,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryDark),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryOrange, width: 2.0),
-                ),
-                errorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                errorStyle: const TextStyle(
-                  color: Colors.red,
-                ),
-                filled: true,
-                fillColor: primaryDarkLighter,
-
-                // Add suffixIcon here
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _passwordVisible ? Icons.visibility : Icons.visibility_off,
-                    color: primaryDark,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _passwordVisible = !_passwordVisible;
-                    });
-                  },
-                ),
-              ),
+              labelText: 'Password*',
               obscureText: !_passwordVisible,
-              style: gradientTextStyle(),
+              onChanged: (value) => viewModel.setPassword(value),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter a password';
@@ -226,59 +128,25 @@ class _Step2ScreenState extends State<Step2Screen> {
                 }
                 return null;
               },
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: primaryDark,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _passwordVisible = !_passwordVisible;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 16.0),
             // Repeat Password Field
-            TextFormField(
-              key: _repeatPasswordKey,
+            AppThemeTextFormField(
               controller: _repeatPasswordController,
-              onChanged: (value) => viewModel.setRepeatPassword(value),
-              decoration: InputDecoration(
-                labelText: 'Repeat Password*',
-                labelStyle: TextStyle(
-                    foreground: Paint()
-                      ..shader = gradient.createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                      ),
-                    backgroundColor: primaryDarkLighter,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryDark),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryOrange, width: 2.0),
-                ),
-                errorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                errorStyle: const TextStyle(
-                  color: Colors.red,
-                ),
-                filled: true,
-                fillColor: primaryDarkLighter,
-
-                // Add suffixIcon here
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _repeatPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: primaryDark,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _repeatPasswordVisible = !_repeatPasswordVisible;
-                    });
-                  },
-                ),
-              ),
+              labelText: 'Repeat Password*',
               obscureText: !_repeatPasswordVisible,
-              style: gradientTextStyle(),
-              autovalidateMode: AutovalidateMode.onUserInteraction,
+              onChanged: (value) => viewModel.setRepeatPassword(value),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please repeat your password';
@@ -287,50 +155,39 @@ class _Step2ScreenState extends State<Step2Screen> {
                 }
                 return null;
               },
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _repeatPasswordVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  color: primaryDark,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _repeatPasswordVisible = !_repeatPasswordVisible;
+                  });
+                },
+              ),
+              key: _repeatPasswordKey,
             ),
             const SizedBox(height: 16.0),
             // Phone Number Field
-
-            TextFormField(
-              initialValue: viewModel.phone,
+            AppThemeTextFormField(
+              controller: TextEditingController(text: viewModel.phone),
+              labelText: 'Phone*',
+              keyboardType: TextInputType.phone,
               onChanged: (value) => viewModel.setPhone(value),
-              decoration: InputDecoration(
-                labelText: 'Phone*',
-                labelStyle: TextStyle(
-                  foreground: Paint()
-                    ..shader = gradient.createShader(
-                      const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                    ),
-                  backgroundColor: primaryDarkLighter,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryDark),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryOrange, width: 2.0),
-                ),
-                errorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                errorStyle: const TextStyle(
-                  color: Colors.red,
-                ),
-                filled: true,
-                fillColor: primaryDarkLighter,
-              ),
-              style: gradientTextStyle(),
-              // ... (rest of your code for this field)
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your phone number';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16.0),
             // Switch for Phone Visibility
             PhoneInputField(
               onChanged: (phone) {
-                print('Selected Phone Number: $phone');
                 viewModel.setPhone(
                     phone); // Update the phone number in your ViewModel
               },
@@ -342,10 +199,7 @@ class _Step2ScreenState extends State<Step2Screen> {
               ),
               value: viewModel.isPhoneVisible,
               onChanged: (value) {
-                setState(() {
-                  viewModel.isPhoneVisible = value;
-                  viewModel.notify();
-                });
+                //viewModel.setPhoneVisibility(value);
               },
             ),
           ],
@@ -358,7 +212,7 @@ class _Step2ScreenState extends State<Step2Screen> {
 class PhoneInputField extends StatefulWidget {
   final Function(String)? onChanged;
 
-  const PhoneInputField({Key? key, this.onChanged}) : super(key: key);
+  const PhoneInputField({super.key, this.onChanged});
 
   @override
   _PhoneInputFieldState createState() => _PhoneInputFieldState();

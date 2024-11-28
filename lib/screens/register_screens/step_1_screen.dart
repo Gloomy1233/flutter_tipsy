@@ -31,66 +31,60 @@ class _Step1ScreenState extends State<Step1Screen> {
     final viewModel = Provider.of<RegistrationViewModel>(context);
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        // Center the content vertically
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // User Card
+        padding: const EdgeInsets.all(16.0),
+        child: AnimatedOpacity(
+          opacity: visible ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 500),
+          child: Column(
+            // Center the content vertically
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // User Card
 
-          const SizedBox(height: 32.0),
-          // Animated Visibility Text
-          AnimatedOpacity(
-            opacity: visible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: const Text(
-              "What account type do you want?\n(You can change this later)",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18.0),
-            ),
-          ),
-          const SizedBox(height: 32.0),
-          // Animated Buttons
-          AnimatedOpacity(
-            opacity: visible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: Column(
-              children: [
-                _buildAccountTypeCard(
-                  title: 'I just want to Party',
-                  subtitle: 'Party',
-                  isSelected: !viewModel.isGuest,
-                  onTap: () => viewModel.setAccountType(false),
-                ),
-                const SizedBox(height: 16.0),
-                // Host Card
-                _buildAccountTypeCard(
-                  title: 'I want to host Events',
-                  subtitle: 'Host',
-                  isSelected: viewModel.isGuest,
-                  onTap: () => viewModel.setAccountType(true),
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 32.0),
-          // Sign In Text Button
-          AnimatedOpacity(
-            opacity: visible ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 500),
-            child: TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/signin');
-              },
-              child: const Text(
-                "Already have an account? Sign in",
-                style: TextStyle(color: primaryOrange),
+              SizedBox(height: 32.0),
+              // Animated Visibility Text
+              const Text(
+                "What account type do you want?\n(You can change this later)",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18.0),
               ),
-            ),
+
+              const SizedBox(height: 32.0),
+              // Animated Buttons
+              Column(
+                children: [
+                  _buildAccountTypeCard(
+                    title: 'I just want to Party',
+                    subtitle: 'Party',
+                    isSelected: !viewModel.isGuest,
+                    onTap: () => viewModel.setAccountType(false),
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Host Card
+                  _buildAccountTypeCard(
+                    title: 'I want to host Events',
+                    subtitle: 'Host',
+                    isSelected: viewModel.isGuest,
+                    onTap: () => viewModel.setAccountType(true),
+                  )
+                ],
+              ),
+
+              const SizedBox(height: 32.0),
+              // Sign In Text Button
+
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/signin');
+                },
+                child: const Text(
+                  "Already have an account? Sign in",
+                  style: TextStyle(color: primaryOrange),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 
   Widget _buildAccountTypeCard({

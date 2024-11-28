@@ -7,8 +7,8 @@ import 'package:flutter_tipsy/utils/constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sizer/sizer.dart';
 
-import '../widgets/background_shapes.dart';
 import '../widgets/logo_selection.dart';
+import 'home_screens/home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -19,7 +19,6 @@ class LoginScreen extends StatelessWidget {
       // Use Stack to layer background shapes and content
       body: Stack(
         children: [
-          const BackgroundShapes(),
           SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
@@ -40,6 +39,10 @@ class LoginScreen extends StatelessWidget {
                   }),
                   SizedBox(height: 2.h),
                   LoginButton(onLogin: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
                     // Handle login success
                     // Navigator.push(
                     //   context,

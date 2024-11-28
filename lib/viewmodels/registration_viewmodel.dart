@@ -15,10 +15,12 @@ class RegistrationViewModel extends ChangeNotifier {
   String phone = '';
   bool isPhoneVisible = false;
   String dateOfBirth = '';
+  int timestampOfBirth = 0;
   int sex = 0;
   int relationshipStatus = 0;
   String bio = '';
   String? profilePictureUri;
+  File? profilePicture;
 
   // Setters
   void setAccountType(bool value) {
@@ -61,6 +63,17 @@ class RegistrationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDate(int timestamp, String date) {
+    timestampOfBirth = timestamp;
+    dateOfBirth = date;
+    notifyListeners();
+  }
+
+  void setProfilePicture(File? file) {
+    profilePicture = file;
+    notifyListeners();
+  }
+
   // Add similar setters for other fields...
 
   // Validation
@@ -95,12 +108,11 @@ class RegistrationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Save to Firebase
   Future<void> saveRegistrationDataToFirebase() async {
     final auth = FirebaseAuth.instance;
     final firestore = FirebaseFirestore.instance;
     final storage = FirebaseStorage.instance;
-
+    print("email: ${email}password: ${password}");
     try {
       // 1. Create user with email and password
       UserCredential authResult = await auth.createUserWithEmailAndPassword(
@@ -109,37 +121,63 @@ class RegistrationViewModel extends ChangeNotifier {
       );
       String uid = authResult.user?.uid ?? '';
 
+      // Upload image to Firebase Storage and get its URL
+      String? imageUrl = await _uploadImageToFirebase(uid);
+
+      // Save user data including image URL to Firestore
+      await _saveUserDataToFirestore(uid, imageUrl);
+
+      // Navigate to the main screen or login page after successful signup
+      //Navigator.pushReplacementNamed(context, '/login');
+
       // 2. Upload profile picture if available
-      String? profilePictureUrl;
-      if (profilePictureUri != null && profilePictureUri!.isNotEmpty) {
-        Reference storageRef = storage.ref().child('profile_pictures/$uid.jpg');
-        UploadTask uploadTask = storageRef.putFile(File(profilePictureUri!));
-        await uploadTask;
-        profilePictureUrl = await storageRef.getDownloadURL();
-      }
-
-      // 3. Create user data object
-      Map<String, dynamic> userData = {
-        'uid': uid,
-        'accountType': isGuest,
-        'fullName': fullName,
-        'email': email,
-        'phone': phone,
-        'isPhoneVisible': isPhoneVisible,
-        'dateOfBirth': dateOfBirth,
-        'sex': sex,
-        'relationshipStatus': relationshipStatus,
-        'bio': bio,
-        'profilePictureUrl': profilePictureUrl,
-      };
-
       // 4. Save user data to Firestore
-      await firestore.collection('users').doc(uid).set(userData);
+      //await firestore.collection('users').doc(uid).set(userData);
 
       print('User registered successfully with UID: $uid');
     } catch (e) {
       print('Error during registration: ${e.toString()}');
       throw e;
     }
+  }
+  // Save to Firebase
+
+  Future<String?> _uploadImageToFirebase(String uid) async {
+    if (profilePicture == null) return null;
+
+    try {
+      // Reference to the profile location in Firebase Storage
+      final storageRef =
+          FirebaseStorage.instance.ref().child('user_images').child('$uid.jpg');
+
+      // Upload the image and await for the task to complete
+      await storageRef.putFile(profilePicture!);
+
+      // Get and return the download URL
+      String downloadUrl = await storageRef.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+
+      return null;
+    }
+  }
+
+  Future<void> _saveUserDataToFirestore(String uid, String? imageUrl) async {
+    Map<String, dynamic> userData = {
+      'uid': uid,
+      'accountType': isGuest,
+      'fullName': fullName,
+      'email': email,
+      'phone': phone,
+      'isPhoneVisible': isPhoneVisible,
+      'dateOfBirth': dateOfBirth,
+      'sex': sex,
+      'relationshipStatus': relationshipStatus,
+      'bio': bio,
+      'profilePictureUrl': imageUrl,
+    };
+
+    await FirebaseFirestore.instance.collection('users').doc(uid).set(userData);
   }
 }

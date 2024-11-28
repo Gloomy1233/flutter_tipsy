@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/screens/register_screens/step_1_screen.dart';
 import 'package:flutter_tipsy/screens/register_screens/step_2_screen.dart';
 import 'package:flutter_tipsy/screens/register_screens/step_3_screen.dart';
+import 'package:flutter_tipsy/screens/register_screens/step_4_screen.dart';
 import 'package:flutter_tipsy/widgets/background_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -52,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Back Button (unchanged)
+                // Back Button
                 Padding(
                   padding: EdgeInsets.only(left: 7.w),
                   child: FloatingActionButton(
@@ -66,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-                // Next Button (now listens to changes)
+                // Next Button
                 FloatingActionButton(
                   shape: const CircleBorder(),
                   backgroundColor:
@@ -76,8 +77,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: registrationViewModel.isNextEnabled(_currentPage)
                       ? _handleNext
                       : null,
-                  child: const Icon(
-                    Icons.keyboard_arrow_right_sharp,
+                  child: Icon(
+                    _currentPage == _totalPages - 1
+                        ? Icons.check
+                        : Icons.keyboard_arrow_right_sharp,
                     color: primaryDark,
                   ),
                 ),
@@ -92,7 +95,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             shape: const DoubleCircularNotchedButton(),
             notchMargin: 5.0,
             clipBehavior: Clip.antiAlias,
-            // Missing comma added here
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -111,29 +113,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         ),
-        body: Stack(
-          children: [
-            const BackgroundWidget(),
-            PageView(
-              controller: _pageController,
-              physics: const BouncingScrollPhysics(),
-              onPageChanged: (int page) {
-                setState(() {
-                  _currentPage = page;
-                });
-              },
-              children: const [
-                Step1Screen(),
-                Step2Screen(),
-                Step3Screen(),
-                Step1Screen(),
-              ],
-            ),
-            if (_isLoading) const LoadingIndicator(),
-          ],
+        body: RepaintBoundary(
+          child: Stack(
+            children: [
+              const BackgroundWidget(),
+              PageView.builder(
+                controller: _pageController,
+                physics: const BouncingScrollPhysics(),
+                itemCount: _totalPages,
+                onPageChanged: (int page) {
+                  setState(() {
+                    _currentPage = page;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return _buildPage(index);
+                },
+              ),
+              if (_isLoading) const LoadingIndicator(),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return const Step1Screen();
+      case 1:
+        return const Step2Screen();
+      case 2:
+        return const Step3Screen();
+      case 3:
+        return const Step4Screen();
+      default:
+        return Container();
+    }
   }
 
   void _handleBack() {
@@ -145,6 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _handleNext() async {
     if (_currentPage < _totalPages - 1) {
+      print("email: asas");
       _pageController.nextPage(
           duration: const Duration(milliseconds: 300), curve: Curves.ease);
     } else {
@@ -159,121 +177,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
         // Navigate to the next screen or show success message
         if (context.mounted) {
-          Navigator.pop(context);
+          Navigator.pushNamed(context, '/login');
         }
       } catch (e) {
+        print("email: " + e.toString());
         setState(() {
           _isLoading = false;
         });
       }
     }
-  }
-}
-
-class NavigationButtons extends StatelessWidget {
-  final int currentPage;
-  final int totalPages;
-  final VoidCallback onBack;
-  final VoidCallback onNext;
-  final bool isNextEnabled;
-  final PageController pageController;
-
-  const NavigationButtons(
-      {super.key,
-      required this.currentPage,
-      required this.totalPages,
-      required this.onBack,
-      required this.onNext,
-      required this.isNextEnabled,
-      required this.pageController});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Back Button
-        IconButton(
-          icon: const Icon(Icons.keyboard_arrow_left_sharp),
-          onPressed: currentPage > 0 ? onBack : null,
-          style: IconButton.styleFrom(
-            shape: const CircleBorder(),
-            backgroundColor: currentPage > 0 ? primaryOrange : primaryDark,
-            fixedSize: Size(SDP.sdp(50), SDP.sdp(50)),
-          ),
-        ),
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: List.generate(totalPages, (index) {
-        //     return Container(
-        //       width: 15.0,
-        //       height: 15.0,
-        //       margin: EdgeInsets.symmetric(horizontal: 10.0 / 2),
-        //       decoration: BoxDecoration(
-        //         color: index <= currentPage ? primaryOrange : Colors.grey,
-        //         shape: BoxShape.circle,
-        //       ),
-        //     );
-        //   }),
-        // )
-        SmoothPageIndicator(
-          controller: pageController,
-          count: 4,
-          effect: ExpandingDotsEffect(
-              dotColor: primaryOrange,
-              activeDotColor: gradientOrange,
-              dotHeight: 15,
-              dotWidth: 15,
-              spacing: SDP.sdp(30)),
-        ), // Next Button
-        IconButton(
-          icon: const Icon(Icons.keyboard_arrow_right_sharp),
-          onPressed: isNextEnabled ? onNext : null,
-          style: IconButton.styleFrom(
-            shape: const CircleBorder(),
-            backgroundColor: isNextEnabled ? primaryOrange : primaryDark,
-            fixedSize: Size(SDP.sdp(50), SDP.sdp(50)),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class CustomPageIndicator extends StatelessWidget {
-  final int totalPages;
-  final int currentPage;
-  final Color activeColor;
-  final Color inactiveColor;
-  final double indicatorSize;
-  final double spacing;
-
-  const CustomPageIndicator({
-    super.key,
-    required this.totalPages,
-    required this.currentPage,
-    this.activeColor = primaryOrange,
-    this.inactiveColor = Colors.grey,
-    this.indicatorSize = 15.0,
-    this.spacing = 10.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(totalPages, (index) {
-        return Container(
-          width: indicatorSize,
-          height: indicatorSize,
-          margin: EdgeInsets.symmetric(horizontal: spacing / 2),
-          decoration: BoxDecoration(
-            color: index <= currentPage ? activeColor : inactiveColor,
-            shape: BoxShape.circle,
-          ),
-        );
-      }),
-    );
   }
 }
 
