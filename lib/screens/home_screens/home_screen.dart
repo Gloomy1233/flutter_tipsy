@@ -2,10 +2,12 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/utils/constants.dart';
 
+import '../../viewmodels/user_model.dart';
 import '../../widgets/background_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final UserDataModel userData;
+  const HomeScreen({super.key, required this.userData});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -24,47 +26,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(children: [
-        const BackgroundWidget(),
-        _screens[_currentIndex]
-      ]), // Display the selected screen
-      bottomNavigationBar: CurvedNavigationBar(
-        key: _navBarKey,
-        index: _currentIndex,
-        height: 60,
-        items: _icons,
-        color: primaryDark,
-        buttonBackgroundColor: primaryDark,
-        backgroundColor: Colors.white,
-        animationCurve: Curves.easeInOut,
-        animationDuration: const Duration(milliseconds: 300),
-        onTap: (index) async {
-          if (index == 4) {
-            // Show confirmation dialog for switching user
-            bool shouldProceed = await _showSwitchUserDialog(context);
-            if (!shouldProceed) {
-              // Reset the navigation bar to the current index
-              final navBarState = _navBarKey.currentState;
-              navBarState?.setPage(_currentIndex);
-            } else {
-              // Change icons and screens dynamically
-              if (_isHost) {
-                _swapUser(iconsMainScreenHost, screensMainScreenHost);
-                _isHost = !_isHost;
+    return Stack(children: [
+      const BackgroundWidget(),
+      _screens[_currentIndex], // Display the selected screen
+      Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: CurvedNavigationBar(
+          key: _navBarKey,
+          index: _currentIndex,
+          height: 60,
+          items: _icons,
+          color: primaryDark,
+          buttonBackgroundColor: primaryDark,
+          backgroundColor: Colors.transparent,
+          animationCurve: Curves.easeInOut,
+          animationDuration: const Duration(milliseconds: 300),
+          onTap: (index) async {
+            if (index == 4) {
+              // Show confirmation dialog for switching user
+              bool shouldProceed = await _showSwitchUserDialog(context);
+              if (!shouldProceed) {
+                // Reset the navigation bar to the current index
+                final navBarState = _navBarKey.currentState;
+                navBarState?.setPage(_currentIndex);
               } else {
-                _swapUser(iconsMainScreenGuest, screensMainScreenGuest);
-                _isHost = !_isHost;
+                // Change icons and screens dynamically
+                if (_isHost) {
+                  _swapUser(iconsMainScreenHost, screensMainScreenHost);
+                  _isHost = !_isHost;
+                } else {
+                  _swapUser(iconsMainScreenGuest, screensMainScreenGuest);
+                  _isHost = !_isHost;
+                }
               }
+            } else {
+              setState(() {
+                _currentIndex = index;
+              });
             }
-          } else {
-            setState(() {
-              _currentIndex = index;
-            });
-          }
-        },
-      ),
-    );
+          },
+        ),
+      )
+    ]);
   }
 
   Future<bool> _showSwitchUserDialog(BuildContext context) async {

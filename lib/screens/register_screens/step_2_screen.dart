@@ -1,7 +1,6 @@
 // screens/step2_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/widgets/app_theme_text_form_field.dart';
-import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils/constants.dart';
@@ -22,6 +21,10 @@ class _Step2ScreenState extends State<Step2Screen> {
   bool _repeatPasswordVisible = false;
 
   // Controllers for password fields
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _repeatPasswordController =
       TextEditingController();
@@ -36,7 +39,22 @@ class _Step2ScreenState extends State<Step2Screen> {
     // Obtain the viewModel without listening to changes
     final viewModel =
         Provider.of<RegistrationViewModel>(context, listen: false);
+    _fullNameController.text = viewModel.fullName;
+    _emailController.text = viewModel.email;
+    _phoneController.text = viewModel.phone;
 
+    // Add listeners to update ViewModel on changes
+    _fullNameController.addListener(() {
+      viewModel.setFullName(_fullNameController.text);
+    });
+
+    _emailController.addListener(() {
+      viewModel.setEmail(_emailController.text);
+    });
+
+    _phoneController.addListener(() {
+      viewModel.setPhone(_phoneController.text);
+    });
     // Initialize the controllers with existing values
     _passwordController.text = viewModel.password;
     _repeatPasswordController.text = viewModel.repeatPassword;
@@ -84,7 +102,7 @@ class _Step2ScreenState extends State<Step2Screen> {
             const SizedBox(height: 16.0),
             // Full Name Field
             AppThemeTextFormField(
-              controller: TextEditingController(text: viewModel.fullName),
+              controller: _fullNameController,
               labelText: 'Full Name*',
               onChanged: (value) => viewModel.setFullName(value),
               validator: (value) {
@@ -97,7 +115,7 @@ class _Step2ScreenState extends State<Step2Screen> {
             const SizedBox(height: 16.0),
             // Email Field
             AppThemeTextFormField(
-              controller: TextEditingController(text: viewModel.email),
+              controller: _emailController,
               labelText: 'E-mail*',
               keyboardType: TextInputType.emailAddress,
               onChanged: (value) => viewModel.setEmail(value),
@@ -173,7 +191,7 @@ class _Step2ScreenState extends State<Step2Screen> {
             const SizedBox(height: 16.0),
             // Phone Number Field
             AppThemeTextFormField(
-              controller: TextEditingController(text: viewModel.phone),
+              controller: _phoneController,
               labelText: 'Phone*',
               keyboardType: TextInputType.phone,
               onChanged: (value) => viewModel.setPhone(value),
@@ -186,12 +204,7 @@ class _Step2ScreenState extends State<Step2Screen> {
             ),
             const SizedBox(height: 16.0),
             // Switch for Phone Visibility
-            PhoneInputField(
-              onChanged: (phone) {
-                viewModel.setPhone(
-                    phone); // Update the phone number in your ViewModel
-              },
-            ),
+
             SwitchListTile(
               title: const Text(
                 "Do you want the number to be visible?\n(You can change this later)",
@@ -204,100 +217,6 @@ class _Step2ScreenState extends State<Step2Screen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class PhoneInputField extends StatefulWidget {
-  final Function(String)? onChanged;
-
-  const PhoneInputField({super.key, this.onChanged});
-
-  @override
-  _PhoneInputFieldState createState() => _PhoneInputFieldState();
-}
-
-class _PhoneInputFieldState extends State<PhoneInputField> {
-  String initialCountry = 'US';
-  PhoneNumber phoneNumber = PhoneNumber(isoCode: 'US');
-  String countryCode = '+1'; // Default country code
-  String selectedCountry = 'US'; // Default ISO code for Nigeria
-// Default country code
-  final TextEditingController phoneController = TextEditingController();
-  Future<void> parsePhoneNumber(String phoneNumber) async {
-    print('Failed to parse phone adasda: ${phoneNumber.toString()}');
-    try {
-      PhoneNumber number =
-          await PhoneNumber.getRegionInfoFromPhoneNumber(phoneNumber);
-      setState(() {
-        countryCode = number.dialCode ?? ''; // Extract country code
-        selectedCountry = number.isoCode ?? ''; // Extract country ISO
-      });
-
-      // Set the parsable number back to the controller
-      print('Failed to parse phone adasda: ${number.toString()}');
-      phoneController.text =
-          number.parseNumber(); // Parsed number without the country code
-    } catch (e) {
-      print('Failed to parse phone number: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InternationalPhoneNumberInput(
-      onInputChanged: (PhoneNumber value) async {
-        if (widget.onChanged != null) {
-          widget.onChanged!(value.phoneNumber ?? '');
-          print(
-              'Failed to parse phone adasda: ${value.phoneNumber!.allMatches("+").length}');
-
-          if (value.phoneNumber != null &&
-              value.phoneNumber!.split("+").length > 1) {
-            await parsePhoneNumber(value.phoneNumber?.substring(
-                    value.phoneNumber!.lastIndexOf('+'),
-                    value.phoneNumber?.length) ??
-                ""); // Parse on submission
-          }
-
-          // Full phone number
-        }
-      },
-      onInputValidated: (bool isValid) {
-        print('Is phone number valid: $isValid');
-      },
-      selectorConfig: const SelectorConfig(
-        selectorType: PhoneInputSelectorType.DROPDOWN, // Dropdown or sheet
-      ),
-      ignoreBlank: false,
-      autoValidateMode: AutovalidateMode.onUserInteraction,
-      initialValue: phoneNumber,
-      textFieldController: phoneController,
-      textStyle: TextStyle(
-          foreground: Paint()
-            ..shader = gradient.createShader(
-              const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-            )),
-      inputDecoration: InputDecoration(
-        enabledBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: primaryDark),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: primaryOrange, width: 2.0),
-        ),
-        labelText: 'Phone*',
-        labelStyle: TextStyle(
-          foreground: Paint()
-            ..shader = gradient.createShader(
-              const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-            ),
-          backgroundColor: primaryDarkLighter,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-        filled: true,
-        fillColor: primaryDarkLighter,
       ),
     );
   }

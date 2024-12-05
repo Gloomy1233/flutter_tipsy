@@ -91,7 +91,7 @@ class _Step3ScreenState extends State<Step3Screen> {
                               "Date",
                               style: TextStyle(
                                 color: primaryOrange,
-                                fontSize: 7.sp,
+                                fontSize: 12.sp,
                                 fontWeight: FontWeight.w100,
                               ),
                             ),
@@ -212,7 +212,7 @@ class _Step3ScreenState extends State<Step3Screen> {
                   labelText: "Sex",
                   labelStyle: TextStyle(
                     color: primaryOrange,
-                    fontSize: 8.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w100,
                   ),
                   filled: true,
@@ -276,7 +276,7 @@ class _Step3ScreenState extends State<Step3Screen> {
                   labelText: "Relationship Status",
                   labelStyle: TextStyle(
                     color: primaryOrange,
-                    fontSize: 8.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w100,
                   ),
                   filled: true,
@@ -304,7 +304,7 @@ class _Step3ScreenState extends State<Step3Screen> {
             //             "Bio",
             //             style: TextStyle(
             //               color: primaryOrange,
-            //               fontSize: 8.sp,
+            //               fontSize: 14.sp,
             //               fontWeight: FontWeight.w100,
             //             ),
             //           ),
@@ -386,7 +386,7 @@ class _DynamicBioFieldState extends State<DynamicBioField> {
                 "Bio",
                 style: TextStyle(
                   color: primaryOrange,
-                  fontSize: 8.sp,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w100,
                 ),
               ),

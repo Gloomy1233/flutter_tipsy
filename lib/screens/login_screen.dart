@@ -1,17 +1,117 @@
-// screens/login_screen.dart
+// lib/screens/login_screen.dart
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/screens/home_screens/home_screen.dart';
 import 'package:flutter_tipsy/screens/register_screens/register_screen.dart';
 import 'package:flutter_tipsy/screens/welcome_text.dart';
-// import 'package:your_app_name/screens/sign_in_screen.dart';
 import 'package:flutter_tipsy/utils/constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sizer/sizer.dart';
 
+import '../viewmodels/user_model.dart';
 import '../widgets/logo_selection.dart';
-import 'home_screens/home_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  // Controllers for text fields
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  // State variables
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void dispose() {
+    // Dispose controllers when the widget is disposed
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  // Login function using Firebase Authentication
+  Future<void> _login() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      // Sign in with email and password
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
+      // Get user data from Firestore
+      User? user = userCredential.user;
+      if (user != null) {
+        DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
+            .instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          UserDataModel userData = UserDataModel.fromMap(userDoc.data()!);
+
+          // Navigate to HomeScreen and pass userData
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(userData: userData),
+            ),
+          );
+        } else {
+          setState(() {
+            errorMessage = 'User data not found.';
+            isLoading = false;
+          });
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'An unexpected error occurred.';
+        isLoading = false;
+      });
+    }
+  }
+
+  // Forgot password function
+  void _forgotPassword() {
+    if (emailController.text.isEmpty) {
+      setState(() {
+        errorMessage = 'Please enter your email to reset password.';
+      });
+      return;
+    }
+
+    FirebaseAuth.instance
+        .sendPasswordResetEmail(email: emailController.text.trim())
+        .then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset email sent.')),
+      );
+    }).catchError((e) {
+      setState(() {
+        errorMessage = e.message;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,25 +130,20 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 4.h),
                   const WelcomeText(),
                   SizedBox(height: 2.h),
-                  EmailInput(),
+                  EmailInput(controller: emailController),
                   SizedBox(height: 2.h),
-                  const PasswordInput(),
+                  PasswordInput(controller: passwordController),
+                  if (errorMessage != null) ...[
+                    SizedBox(height: 2.h),
+                    Text(
+                      errorMessage!,
+                      style: TextStyle(color: Colors.red, fontSize: 10.sp),
+                    ),
+                  ],
+                  ForgotPasswordButton(onForgotPassword: _forgotPassword),
+                  SizedBox(height: 1.h),
+                  LoginButton(onLogin: _login, isLoading: isLoading),
                   SizedBox(height: 2.h),
-                  ForgotPasswordButton(onForgotPassword: () {
-                    // Handle forgot password
-                  }),
-                  SizedBox(height: 2.h),
-                  LoginButton(onLogin: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
-                    );
-                    // Handle login success
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => HomeScreen()),
-                    // );
-                  }),
                   const SocialMediaLogin(),
                   SignUpSection(onSignUp: () {
                     // Navigate to Sign Up screen
@@ -70,12 +165,13 @@ class LoginScreen extends StatelessWidget {
 }
 
 class EmailInput extends StatelessWidget {
-  final TextEditingController controller = TextEditingController();
+  final TextEditingController controller;
 
-  EmailInput({super.key});
+  const EmailInput({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
+    controller.text = "nikos123@gmail.com";
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 6.w),
       child: TextField(
@@ -83,7 +179,7 @@ class EmailInput extends StatelessWidget {
         decoration: InputDecoration(
           labelText: 'E-mail',
           prefixIcon: const Icon(Icons.email, color: primaryDark),
-          labelStyle: TextStyle(color: primaryOrange, fontSize: 10.sp),
+          labelStyle: TextStyle(color: primaryOrange, fontSize: 14.sp),
           focusedBorder: const OutlineInputBorder(
             borderSide: BorderSide(color: primaryDark),
           ),
@@ -97,7 +193,9 @@ class EmailInput extends StatelessWidget {
 }
 
 class PasswordInput extends StatefulWidget {
-  const PasswordInput({super.key});
+  final TextEditingController controller;
+
+  const PasswordInput({super.key, required this.controller});
 
   @override
   _PasswordInputState createState() => _PasswordInputState();
@@ -105,18 +203,18 @@ class PasswordInput extends StatefulWidget {
 
 class _PasswordInputState extends State<PasswordInput> {
   bool passwordVisible = false;
-  final TextEditingController controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    widget.controller.text = "19961996";
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 6.w),
       child: TextField(
-        controller: controller,
+        controller: widget.controller,
         obscureText: !passwordVisible,
         decoration: InputDecoration(
           labelText: 'Password',
-          labelStyle: TextStyle(color: primaryOrange, fontSize: 10.sp),
+          labelStyle: TextStyle(color: primaryOrange, fontSize: 14.sp),
           prefixIcon: const Icon(Icons.lock, color: primaryDark),
           suffixIcon: IconButton(
             icon: Icon(
@@ -152,7 +250,7 @@ class ForgotPasswordButton extends StatelessWidget {
       onPressed: onForgotPassword,
       child: Text(
         'Forgot Password',
-        style: TextStyle(color: primaryOrange, fontSize: 10.sp),
+        style: TextStyle(color: primaryOrange, fontSize: 13.sp),
       ),
     );
   }
@@ -160,16 +258,18 @@ class ForgotPasswordButton extends StatelessWidget {
 
 class LoginButton extends StatelessWidget {
   final VoidCallback onLogin;
+  final bool isLoading;
 
-  const LoginButton({super.key, required this.onLogin});
+  const LoginButton(
+      {super.key, required this.onLogin, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80.w,
+      width: 60.w,
       height: 6.h,
       child: ElevatedButton(
-        onPressed: onLogin,
+        onPressed: isLoading ? null : onLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryDark,
           shape: RoundedRectangleBorder(
@@ -177,16 +277,21 @@ class LoginButton extends StatelessWidget {
           ),
           elevation: 6,
         ),
-        child: Text(
-          'LOG IN',
-          style: TextStyle(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.bold,
-            foreground: Paint()
-              ..shader = gradient.createShader(Rect.fromLTWH(0, 0, 80.w, 6.h)),
-            letterSpacing: 1.5,
-          ),
-        ),
+        child: isLoading
+            ? CircularProgressIndicator(
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              )
+            : Text(
+                'LOG IN',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  foreground: Paint()
+                    ..shader =
+                        gradient.createShader(Rect.fromLTWH(0, 0, 80.w, 6.h)),
+                  letterSpacing: 1.5,
+                ),
+              ),
       ),
     );
   }
@@ -199,18 +304,26 @@ class SocialMediaLogin extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Divider(color: primaryDark),
+        const Divider(
+          color: primaryDark,
+          indent: 150,
+          endIndent: 150,
+        ),
         const Text(
           'Or use',
           style: TextStyle(color: gradientOrange),
         ),
-        const Divider(color: primaryDark),
+        const Divider(
+          color: primaryDark,
+          indent: 150,
+          endIndent: 150,
+        ),
         SizedBox(height: 2.h),
         SizedBox(
           width: 80.w,
           child: OutlinedButton.icon(
             onPressed: () {
-              // Handle Facebook login
+              // Implement Facebook login here
             },
             icon: const FaIcon(FontAwesomeIcons.facebook, color: primaryDark),
             label: Text(
@@ -224,7 +337,7 @@ class SocialMediaLogin extends StatelessWidget {
           width: 80.w,
           child: OutlinedButton.icon(
             onPressed: () {
-              // Handle Google login
+              // Implement Google sign-in here
             },
             icon: const FaIcon(FontAwesomeIcons.google, color: primaryDark),
             label: Text(

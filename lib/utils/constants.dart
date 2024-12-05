@@ -5,7 +5,7 @@ import '../screens/home_screens/user_screens/search_event_screen.dart';
 // Colors
 const Color primaryDark = Color(0xFF262838);
 const Color primaryDarkLighter = Color(0xFF3A3C4E);
-const Color primaryDarkEvenLighter = Color(0xffffffff);
+const Color primaryDarkEvenLighter = Color(0xC96F738B);
 
 const Color primaryOrange = Color(0xFFE8827C);
 const Color gradientOrange = Color(0xFFF5C8A3);
