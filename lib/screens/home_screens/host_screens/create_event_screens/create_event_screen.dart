@@ -2,18 +2,18 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/event_step_1_screen.dart';
-import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/event_step_2_screen.dart';
-import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/event_step_3_screen.dart';
-import 'package:flutter_tipsy/viewmodels/create_event_view_model.dart';
-import 'package:flutter_tipsy/widgets/background_widget.dart';
+import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/address_pick.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../../../utils/constants.dart';
 import '../../../../utils/sdp.dart';
+import '../../../../viewmodels/create_event_view_model.dart';
+import '../../../../widgets/background_widget.dart';
 import '../../../../widgets/loading_indicator.dart';
+import 'event_step_1_screen.dart';
+import 'event_step_3_screen.dart';
 import 'event_step_4_screen.dart';
 
 class CreateEventScreen extends StatefulWidget {
@@ -71,10 +71,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 FloatingActionButton(
                   shape: const CircleBorder(),
                   backgroundColor:
-                      registrationViewModel.isNextEnabled(_currentPage)
+                      registrationViewModel!.isNextEnabled(_currentPage)
                           ? primaryOrange
                           : Colors.grey,
-                  onPressed: registrationViewModel.isNextEnabled(_currentPage)
+                  onPressed: registrationViewModel!.isNextEnabled(_currentPage)
                       ? _handleNext
                       : null,
                   child: Icon(
@@ -145,9 +145,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       case 0:
         return EventStep1Screen();
       case 1:
-        return EventStep2Screen();
+        return AddressPick();
       case 2:
-        return MapSample();
+        return EventStep3Screen();
       case 3:
         return EventStep4Screen();
       case 4:

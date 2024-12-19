@@ -1,5 +1,6 @@
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/create_event_screen.dart';
 import 'package:flutter_tipsy/screens/login_screen.dart';
@@ -9,7 +10,9 @@ import 'package:flutter_tipsy/viewmodels/user_view_model.dart';
 import 'package:nominatim_flutter/nominatim_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:sizer/sizer.dart'; // For responsive sizing
+import 'package:sizer/sizer.dart';
+
+import 'firebase_options.dart'; // For responsive sizing
 
 void main() async {
   WidgetsFlutterBinding
@@ -19,11 +22,9 @@ void main() async {
     maxStale: Duration(days: 7),
   );
 
-  String storageLocation = (await getApplicationDocumentsDirectory()).path;
-  await FastCachedImageConfig.init(
-      subDir: storageLocation, clearCacheAfter: const Duration(days: 15));
-
-  await Firebase.initializeApp(); // Initializes Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ); // Initializes Firebase
 
   runApp(MultiProvider(
     providers: [
@@ -32,6 +33,13 @@ void main() async {
     ],
     child: MyApp(),
   ));
+  if (kIsWeb) {
+    await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
+  } else {
+    String storageLocation = (await getApplicationDocumentsDirectory()).path;
+    await FastCachedImageConfig.init(
+        subDir: storageLocation, clearCacheAfter: const Duration(days: 15));
+  }
 }
 
 class MyApp extends StatelessWidget {

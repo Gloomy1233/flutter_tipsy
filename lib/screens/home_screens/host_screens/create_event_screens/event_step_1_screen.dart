@@ -3,13 +3,23 @@ import 'package:sizer/sizer.dart';
 
 import '../../../../utils/constants.dart';
 import '../../../../widgets/app_theme_text_form_field.dart';
+import '../../widgets_home/search_widget.dart';
 
-class EventStep1Screen extends StatelessWidget {
+class EventStep1Screen extends StatefulWidget {
+  EventStep1Screen({super.key});
+
+  @override
+  State<EventStep1Screen> createState() => _EventStep1ScreenState();
+}
+
+class _EventStep1ScreenState extends State<EventStep1Screen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController paragraphController = TextEditingController();
   final TextEditingController maxGuestsController = TextEditingController();
+  final TextEditingController dateOfBirthController =
+      TextEditingController(text: "adsads");
 
-  EventStep1Screen({super.key});
+  bool isAddressVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -109,10 +119,138 @@ class EventStep1Screen extends StatelessWidget {
               ],
             ),
             SizedBox(height: 4.h),
+            Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        "Want address to be visible",
+                        style: TextStyle(
+                          color: primaryDark,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w200,
+                        ),
+                      ),
+                      SizedBox(width: 5),
+                      Icon(Icons.help_outline, color: primaryPink, size: 14.sp),
+                      Spacer(),
+                      Switch(
+                        value: isAddressVisible,
+                        onChanged: (value) {
+                          setState(() {
+                            isAddressVisible = value;
+                          });
+                        },
+                        activeColor: primaryOrange,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: gradient,
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          offset: Offset(0, 10),
+                          blurRadius: 6,
+                        ),
+                      ],
+                      border: Border.all(color: primaryDark, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 4.0),
+                                child: Text(
+                                  "Date",
+                                  style: TextStyle(
+                                    color: primaryDark,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w100,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.date_range_sharp,
+                                color: primaryDark,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 7.w),
+                            child: TextFormField(
+                              controller: dateOfBirthController,
+                              readOnly: true,
+                              textAlign: TextAlign.left,
+                              onTap: () async {
+                                // Show date picker (your existing code)
+                              },
+                              style: TextStyle(
+                                color: primaryDark,
+                              ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 8),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.keyboard_arrow_right,
+                          color: primaryDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Removed the Expanded widget below
+            /*
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 7.w),
+                child: TextFormField(
+                  controller: dateOfBirthController,
+                  readOnly: true,
+                  textAlign: TextAlign.left,
+                  onTap: () async {
+                    // Show date picker (your existing code)
+                  },
+                  style: TextStyle(
+                    color: primaryDark,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_right,
+              color: primaryDark,
+            ),
+            */
 
             // Features Section
             Text(
-              "Features",
+              "Party Theme",
               style: TextStyle(
                 color: primaryDark,
                 fontSize: 16.sp,
@@ -123,50 +261,21 @@ class EventStep1Screen extends StatelessWidget {
 
             // Features Tags
             Container(
-                padding: EdgeInsets.all(3.w),
-                decoration: BoxDecoration(
-                  color: primaryDarkLighter,
-                  borderRadius: BorderRadius.circular(3.w),
-                ),
-                child: Column(
-                  children: [
-                    TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: "Search for parties...",
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(3.w),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 0.5.h, // Adjust height
-                          horizontal: 12.0, // Adjust left and right padding
-                        ),
-                      ),
-                      style: TextStyle(fontSize: 12.sp), // Smaller font size
-                    ),
-                    SizedBox(height: 2.h),
-                    Wrap(
-                      spacing: 2.w,
-                      runSpacing: 1.h,
-                      children: [
-                        _buildFeatureChip(
-                            "Strobe Lights/Laser Lights", Icons.light),
-                        _buildFeatureChip("Hot Tub", Icons.hot_tub),
-                        _buildFeatureChip("Large Place", Icons.house),
-                        _buildFeatureChip("Woofer-SubWoofer", Icons.speaker),
-                        _buildFeatureChip(
-                            "Edm-Rave-Drum n’Bass", Icons.music_note),
-                        _buildFeatureChip(
-                            "Bring your own booze", Icons.local_drink),
-                      ],
-                    ),
-                  ],
-                )),
+              padding: EdgeInsets.all(3.w),
+              decoration: BoxDecoration(
+                color: primaryDarkLighter,
+                borderRadius: BorderRadius.circular(3.w),
+              ),
+              child: Column(
+                children: [
+                  SearchWidget(),
+                ],
+              ),
+            ),
             SizedBox(height: 4.h),
 
             // Navigation Buttons
+            // Add your navigation buttons here
           ],
         ),
       ),

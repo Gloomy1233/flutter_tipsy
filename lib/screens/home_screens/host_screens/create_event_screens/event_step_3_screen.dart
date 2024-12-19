@@ -1,38 +1,64 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sizer/sizer.dart';
-import 'package:ultra_map_place_picker/ultra_map_place_picker.dart';
 
 import '../../../../utils/constants.dart';
+import '../../../../widgets/app_theme_text_form_field.dart';
 
-class MapSample extends StatefulWidget {
-  const MapSample({super.key});
+class EventStep3Screen extends StatefulWidget {
+  const EventStep3Screen({super.key});
 
   @override
-  State<MapSample> createState() => MapSampleState();
+  State<EventStep3Screen> createState() => EventStep3ScreenState();
 }
 
-class MapSampleState extends State<MapSample> {
+class EventStep3ScreenState extends State<EventStep3Screen> {
   bool isAddressVisible = false;
-  final String apiKey = "AIzaSyAgMuRPnAf9vv8APMnuGDjgohOzaLUoCIE";
   final TextEditingController dateOfBirthController =
       TextEditingController(text: "adsads");
+  final TextEditingController searchController = TextEditingController();
 
-  final Completer<GoogleMapController> _controller =
-      Completer<GoogleMapController>();
+  // List to hold search results
+  List<Map<String, dynamic>> searchResults = [];
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
+  // Firestore instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  // Method to perform search
+  Future<void> performSearch(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        searchResults = [];
+      });
+      return;
+    }
+
+    try {
+      // Query Firestore where 'Title' contains the search term
+      // Firestore does not support 'contains' directly, so we'll use 'isGreaterThanOrEqualTo' and 'isLessThanOrEqualTo'
+      // for simple prefix matching. For more advanced search, consider integrating with Algolia or another search service.
+
+      QuerySnapshot snapshot = await _firestore
+          .collection('partyThemes')
+          .where('Title', isGreaterThanOrEqualTo: query)
+          .where('Title', isLessThanOrEqualTo: query + '\uf8ff')
+          .limit(3)
+          .get();
+
+      List<Map<String, dynamic>> results = snapshot.docs.map((doc) {
+        return doc.data() as Map<String, dynamic>;
+      }).toList();
+
+      setState(() {
+        searchResults = results;
+      });
+    } catch (e) {
+      print("Error performing search: $e");
+      // Optionally, handle the error by showing a Snackbar or other UI element
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,62 +68,141 @@ class MapSampleState extends State<MapSample> {
           builder: (BuildContext context, BoxConstraints constraints) {
             return Column(
               children: [
-                SizedBox(
-                  width: 90.w,
-                  height:
-                      60.h, // Reduced height to leave space for other elements
-                  child: UltraMapPlacePicker(
-                      googleApiKey: apiKey,
-                      initialPosition:
-                          LocationModel(25.1974767426511, 55.279669543133615),
-                      mapTypes: (isHuaweiDevice) => isHuaweiDevice
-                          ? [UltraMapType.normal]
-                          : UltraMapType.values,
-                      myLocationButtonCooldown: 1,
-                      resizeToAvoidBottomInset: false,
-                      onPlacePicked: (place) {
-                        print("Place picked: ${place.formattedAddress}");
-                        // Handle the picked place
-                      },
-                      selectedPlaceWidgetBuilder: (BuildContext context,
-                          PickResultModel? selectedPlace,
-                          SearchingState state,
-                          bool isSearchBarFocused) {
-                        return Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            color: Colors.white,
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  selectedPlace?.formattedAddress ??
-                                      'No place selected',
-                                  style: TextStyle(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 8),
-                                if (selectedPlace != null)
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      // Handle the selection here
-                                      print(
-                                          "Selected place: ${selectedPlace.formattedAddress}");
-                                      // You can also update your state or navigate to another screen here
-                                    },
-                                    child: Text('Confirm Selection'),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      showPickedPlace: true),
+                Text(
+                  "Search Party Themes",
+                  style: TextStyle(
+                    color: primaryDark,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w200,
+                  ),
                 ),
+                SizedBox(height: 2.h),
+                AppThemeTextFormField(
+                  controller: searchController,
+                  labelText: "Search",
+                  hintText: "Enter theme title",
+                  onChanged: (value) {
+                    performSearch(value.trim());
+                  },
+                  suffixIcon: Icon(Icons.search),
+                ),
+                SizedBox(height: 2.h),
+
+                // Display Search Results
+                if (searchResults.isNotEmpty)
+                  ListView.builder(
+                    shrinkWrap: true, // Important to prevent unbounded height
+                    physics:
+                        NeverScrollableScrollPhysics(), // To allow SingleChildScrollView to scroll
+                    itemCount: searchResults.length,
+                    itemBuilder: (context, index) {
+                      final item = searchResults[index];
+                      return Card(
+                        elevation: 2,
+                        margin: EdgeInsets.symmetric(vertical: 1.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(2.w),
+                          side: BorderSide(color: primaryDark, width: 1),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(2.w),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['Title'] ?? 'No Title',
+                                style: TextStyle(
+                                  color: primaryDark,
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 1.h),
+                              Text(
+                                "Activities: ${item['Activities'] ?? 'N/A'}",
+                                style: TextStyle(
+                                  color: primaryDark,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                              SizedBox(height: 0.5.h),
+                              Text(
+                                "Attire: ${item['Attire'] ?? 'N/A'}",
+                                style: TextStyle(
+                                  color: primaryDark,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                              SizedBox(height: 0.5.h),
+                              Text(
+                                "Decor: ${item['Decor'] ?? 'N/A'}",
+                                style: TextStyle(
+                                  color: primaryDark,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                Text(
+                  "Features",
+                  style: TextStyle(
+                    color: primaryDark,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w200,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+
+                // Features Tags
+                Container(
+                  padding: EdgeInsets.all(3.w),
+                  decoration: BoxDecoration(
+                    color: primaryDarkLighter,
+                    borderRadius: BorderRadius.circular(3.w),
+                  ),
+                  child: Column(
+                    children: [
+                      TextField(
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.search),
+                          hintText: "Search for parties...",
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(3.w),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 0.5.h, // Adjust height
+                            horizontal: 12.0, // Adjust left and right padding
+                          ),
+                        ),
+                        style: TextStyle(fontSize: 12.sp), // Smaller font size
+                      ),
+                      SizedBox(height: 2.h),
+                      Wrap(
+                        spacing: 2.w,
+                        runSpacing: 1.h,
+                        children: [
+                          _buildFeatureChip(
+                              "Strobe Lights/Laser Lights", Icons.light),
+                          _buildFeatureChip("Hot Tub", Icons.hot_tub),
+                          _buildFeatureChip("Large Place", Icons.house),
+                          _buildFeatureChip("Woofer-SubWoofer", Icons.speaker),
+                          _buildFeatureChip(
+                              "Edm-Rave-Drum n’Bass", Icons.music_note),
+                          _buildFeatureChip(
+                              "Bring your own booze", Icons.local_drink),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 4.h),
                 Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Column(
@@ -208,8 +313,26 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    await controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+  Widget _buildFeatureChip(String label, IconData icon) {
+    return Chip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: primaryOrange, size: 12.sp),
+          SizedBox(width: 1.w),
+          Text(
+            label,
+            style: TextStyle(
+              color: primaryDark,
+              fontSize: 10.sp,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: Colors.grey.shade200,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3.w),
+      ),
+    );
   }
 }
