@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/create_event_screen.dart';
 import 'package:flutter_tipsy/screens/login_screen.dart';
 import 'package:flutter_tipsy/screens/register_screens/register_screen.dart';
+import 'package:flutter_tipsy/utils/ThemePreferences.dart';
 import 'package:flutter_tipsy/utils/constants.dart';
+import 'package:flutter_tipsy/viewmodels/ThemeConstroler.dart';
 import 'package:flutter_tipsy/viewmodels/user_view_model.dart';
 import 'package:nominatim_flutter/nominatim_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,7 +30,9 @@ void main() async {
 
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider(create: (_) => UserViewModel())
+      ChangeNotifierProvider(create: (_) => UserViewModel()),
+      ChangeNotifierProvider(create: (_) => ThemeProvider()),
+
       // Μπορείτε να προσθέσετε και άλλους providers εδώ
     ],
     child: MyApp(),
@@ -42,28 +46,43 @@ void main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  void _toggleTheme() {
+    setState(() {
+      _themeMode =
+          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) {
-        return MaterialApp(
-          title: 'Your App Name',
-          theme: ThemeData(
-            primaryColor: primaryDark,
-            fontFamily: 'Serif',
+        return ThemeController(
+          themeMode: _themeMode,
+          toggleTheme: _toggleTheme,
+          child: MaterialApp(
+            title: 'Your App Name',
+            theme: AppTheme.light, // Use light theme
+            darkTheme: AppTheme.dark, // Use dark theme
+            themeMode: _themeMode,
+            initialRoute: '/login',
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/signup': (context) => const RegisterScreen(),
+              //'/home': (context) => const HomeScreen(userData: null,),
+              '/test': (context) => CreateEventScreen(),
+              //'/eventDetails': (context) => PartyDetailPage(title: title, activities: activities, attire: attire, decor: decor, imageUrl: imageUrl, iconUrl: iconUrl),
+              // Προσθέστε και άλλες διαδρομές αν χρειάζεται
+            },
           ),
-          initialRoute: '/test',
-          routes: {
-            '/login': (context) => const LoginScreen(),
-            '/signup': (context) => const RegisterScreen(),
-            // '/home': (context) => const HomeScreen(),
-            '/test': (context) => CreateEventScreen()
-            //'/profile': (context) => ProfilePage(),
-            // Προσθέστε και άλλες διαδρομές αν χρειάζεται
-          },
         );
       },
     );

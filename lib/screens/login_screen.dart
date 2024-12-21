@@ -10,6 +10,7 @@ import 'package:flutter_tipsy/utils/constants.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sizer/sizer.dart';
 
+import '../utils/ThemePreferences.dart';
 import '../viewmodels/user_model.dart';
 import '../widgets/logo_selection.dart';
 
@@ -115,8 +116,106 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeController = ThemeController.of(context);
+    final isDarkMode = themeController?.themeMode == ThemeMode.dark;
+
     return Scaffold(
       // Use Stack to layer background shapes and content
+      // Add the drawer here
+      drawer: Drawer(
+        child: Column(
+          children: [
+            // Drawer Header
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: AssetImage(
+                        'assets/avatar.png'), // Replace with your image
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Amazing Skirt',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Primary account',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Drawer Items
+            Expanded(
+              child: ListView(
+                children: const [
+                  ListTile(
+                    leading: Icon(Icons.sync),
+                    title: Text('Connection and sync'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.account_balance_wallet),
+                    title: Text('Wallets'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.contacts),
+                    title: Text('Address book'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.security),
+                    title: Text('Security and backup'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.privacy_tip),
+                    title: Text('Privacy'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.settings),
+                    title: Text('Display settings'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.help),
+                    title: Text('Support'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ), // AppBar with Menu Icon
+      appBar: AppBar(
+        title: const Text('Drawer Example'),
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context)
+                    .openDrawer(); // Open the drawer programmatically
+              },
+            );
+          },
+        ),
+      ),
+
       body: Stack(
         children: [
           SingleChildScrollView(

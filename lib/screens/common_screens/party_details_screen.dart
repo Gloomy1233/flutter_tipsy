@@ -134,11 +134,18 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
           ),
           // Back Button
           SafeArea(
-            minimum: EdgeInsets.only(left: 45.w, top: 2.h, right: 45.w),
+            minimum: EdgeInsets.only(
+                left: 45.w,
+                top: 5.h * _bottomContainerHeightFactor,
+                right: 45.w),
             left: true,
             right: true,
             child: IconButton(
-              icon: Icon(Icons.cancel_rounded, color: Colors.white),
+              icon: Icon(
+                Icons.cancel_rounded,
+                color: Colors.white,
+                size: 10.w,
+              ),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -148,11 +155,11 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
           // Left and Right Arrows
           Positioned(
             left: 1.w,
-            height: 30.h,
+            height: 20.h / _bottomContainerHeightFactor,
             width: 20.w,
             child: IconButton(
               alignment: Alignment.centerLeft,
-              icon: Icon(Icons.chevron_left, color: Colors.white, size: 5.h),
+              icon: Icon(Icons.chevron_left, color: Colors.white, size: 10.w),
               onPressed: () {
                 _pageController.previousPage(
                     duration: Duration(milliseconds: 300),
@@ -162,10 +169,11 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
           ),
 
           Positioned(
-            right: 2.w,
-            height: 30.h,
+            right: 1.w,
+            height: 20.h / _bottomContainerHeightFactor,
+            width: 20.w,
             child: IconButton(
-              icon: Icon(Icons.chevron_right, color: Colors.white, size: 5.h),
+              icon: Icon(Icons.chevron_right, color: Colors.white, size: 10.w),
               onPressed: () {
                 _pageController.nextPage(
                     duration: Duration(milliseconds: 300),
@@ -278,31 +286,35 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                     Column(
                                       children: [
                                         Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .spaceBetween, // Use spaceBetween here
                                           children: [
                                             Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                // Replace with custom icon:
-                                                // Image.asset('assets/calendar_icon.png', width: 4.w, height:4.w)
                                                 Icon(Icons.calendar_month,
                                                     size: 4.w),
                                                 SizedBox(width: 1.w),
-                                                Text("5-5-2023",
-                                                    style: TextStyle(
-                                                        color: primaryDark,
-                                                        fontSize: 16.sp)),
+                                                Text(
+                                                  "5-5-2023",
+                                                  style: TextStyle(
+                                                      color: primaryDark,
+                                                      fontSize: 16.sp),
+                                                ),
                                               ],
                                             ),
                                             Row(
                                               children: [
+                                                Text(
+                                                  "11:00 PM",
+                                                  style: TextStyle(
+                                                      color: primaryDark,
+                                                      fontSize: 16.sp),
+                                                ),
+                                                SizedBox(width: 1.w),
                                                 Icon(Icons.access_time,
                                                     size: 4.w),
-                                                SizedBox(width: 1.w),
-                                                Text("11:00 PM",
-                                                    style: TextStyle(
-                                                        color: primaryDark,
-                                                        fontSize: 16.sp)),
                                               ],
                                             ),
                                           ],
@@ -318,32 +330,34 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                               },
                                               child: Row(
                                                 children: [
-                                                  // Custom location icon could be used here
                                                   Icon(Icons.map, size: 4.w),
                                                   SizedBox(width: 1.w),
                                                   Text(
-                                                      "Request to see location",
-                                                      style: TextStyle(
-                                                          color:
-                                                              secondaryTextColor,
-                                                          fontSize: 16.sp)),
+                                                    "Request to see location",
+                                                    style: TextStyle(
+                                                        color:
+                                                            secondaryTextColor,
+                                                        fontSize: 16.sp),
+                                                  ),
                                                 ],
                                               ),
                                             ),
                                             Row(
                                               children: [
-                                                Icon(Icons.group, size: 4.w),
                                                 SizedBox(width: 1.w),
-                                                Text("119\\150",
-                                                    style: TextStyle(
-                                                        color: primaryDark,
-                                                        fontSize: 16.sp)),
+                                                Text(
+                                                  "119\\150",
+                                                  style: TextStyle(
+                                                      color: primaryDark,
+                                                      fontSize: 16.sp),
+                                                ),
+                                                Icon(Icons.group, size: 4.w),
                                               ],
                                             )
                                           ],
                                         ),
                                       ],
-                                    ),
+                                    )
                                   ],
                                 ),
                               ),
@@ -510,6 +524,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               onPressed: () {
                 // Handle Request
               },
+              textColor: primaryDark,
               height: 5.h,
               text: "Request",
               padding: const EdgeInsets.all(0),

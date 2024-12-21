@@ -1190,11 +1190,12 @@ class _AddressPickState extends State<AddressPick> {
           SizedBox(height: 5),
 
           // City and State
-          Row(
+          Flex(
+            direction: Axis.horizontal,
             children: [
               // City
               Expanded(
-                flex: 1,
+                flex: 2,
                 child: AppThemeTextFormField(
                   controller: cityController,
                   labelText: "City",
@@ -1207,7 +1208,7 @@ class _AddressPickState extends State<AddressPick> {
               SizedBox(height: 5),
               // State
               Expanded(
-                flex: 1,
+                flex: 2,
                 child: AppThemeTextFormField(
                   controller: stateController,
                   labelText: "State",

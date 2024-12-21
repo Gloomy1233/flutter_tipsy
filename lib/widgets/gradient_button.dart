@@ -13,6 +13,7 @@ class GradientButton extends StatelessWidget {
   final double height;
   final bool isIcon;
   final Icon icon;
+  final Color textColor;
   const GradientButton({
     super.key,
     required this.text,
@@ -25,6 +26,7 @@ class GradientButton extends StatelessWidget {
     this.isIcon = false,
     this.icon = const Icon(Icons.arrow_forward, color: Colors.white),
     this.height = 200,
+    this.textColor = Colors.white,
   });
 
   @override
@@ -49,7 +51,7 @@ class GradientButton extends StatelessWidget {
                     : Text(
                         text,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor,
                           fontWeight: FontWeight.bold,
                           fontSize: fontSize,
                         ),

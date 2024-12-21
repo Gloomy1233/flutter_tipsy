@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tipsy/screens/common_screens/party_details_screen.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../utils/constants.dart';
+import '../../common_screens/party_details_screen.dart';
 
-// Example primary colors - adjust to match your UI
+//Example primary colors - adjust to match your UI
 final Color chipBackgroundColor = Colors.grey.shade300;
 final Color searchBarColor = Colors.grey.shade200;
 
-// Example widget that displays party themes from Firestore
+//Example widget that displays party themes from Firestore
 class SearchWidget extends StatefulWidget {
   const SearchWidget({super.key});
 
@@ -29,7 +29,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       children: [
         SizedBox(height: 2.h),
 
-        // Search bar
+        //Search bar
         Container(
           padding: EdgeInsets.symmetric(horizontal: 3.w),
           decoration: BoxDecoration(
@@ -134,7 +134,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   }) {
     return GestureDetector(
       onTap: () {
-        // Navigate to PartyDetailPage with the provided data
+        //Navigate to Party/DetailPage with the provided data
         Navigator.push(
           context,
           MaterialPageRoute(

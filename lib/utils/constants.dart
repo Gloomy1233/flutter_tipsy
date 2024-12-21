@@ -1,4 +1,7 @@
+import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/create_event_screen.dart';
 
 import '../screens/home_screens/user_screens/search_event_screen.dart';
 
@@ -50,7 +53,7 @@ var iconsMainScreenHost = <Widget>[
 const screensMainScreenHost = [
   Center(child: Text("Blocked Users", style: TextStyle(fontSize: 24))),
   Center(child: Text("Statistics", style: TextStyle(fontSize: 24))),
-  Center(child: Text("Create Event", style: TextStyle(fontSize: 24))),
+  const CreateEventScreen(),
   Center(child: Text("Organizer", style: TextStyle(fontSize: 24))),
   Center(child: Text("Swap User", style: TextStyle(fontSize: 24))),
 ];
@@ -71,3 +74,109 @@ var iconsMainScreenGuest = <Widget>[
   const Icon(Icons.accessibility_outlined, size: 30, color: Colors.white),
   const Icon(Icons.swap_horiz_sharp, size: 30, color: Colors.white),
 ];
+
+/// The [AppTheme] defines light and dark themes for the app.
+///
+/// Theme setup for FlexColorScheme package v8.
+/// Use same major flex_color_scheme package version. If you use a
+/// lower minor version, some properties may not be supported.
+/// In that case, remove them after copying this theme to your
+/// app or upgrade package to version 8.0.2.
+///
+/// Use in [MaterialApp] like this:
+///
+/// MaterialApp(
+///  theme: AppTheme.light,
+///  darkTheme: AppTheme.dark,
+///  :
+/// );
+sealed class AppTheme {
+  // The defined light theme.
+  static ThemeData light = FlexThemeData.light(
+    colors: const FlexSchemeColor(
+      // Custom colors
+      primary: primaryDark,
+      primaryContainer: shapeColor3,
+      primaryLightRef: primaryPink,
+      secondary: primaryOrange,
+      secondaryContainer: gradientOrange,
+      secondaryLightRef: FlexColor.purpleM3LightPrimary,
+      tertiary: FlexColor.amberLightTertiary,
+      tertiaryContainer: shapeColor3,
+      tertiaryLightRef: FlexColor.bahamaBlueLightSecondaryVariant,
+      appBarColor: Colors.cyan,
+      error: FlexColor.redLightSecondaryVariant,
+      errorContainer: Color(0xFFFFDAD6),
+    ),
+    swapColors: true,
+    subThemesData: const FlexSubThemesData(
+      interactionEffects: true,
+      tintedDisabledControls: true,
+      useM2StyleDividerInM3: true,
+      thinBorderWidth: 1.0,
+      adaptiveSplash: FlexAdaptive.all(),
+      splashType: FlexSplashType.inkSplash,
+      adaptiveElevationShadowsBack: FlexAdaptive.all(),
+      adaptiveRadius: FlexAdaptive.all(),
+      defaultRadiusAdaptive: 7.0,
+      inputDecoratorIsFilled: true,
+      inputDecoratorBorderType: FlexInputBorderType.outline,
+      alignedDropdown: true,
+      navigationRailUseIndicator: true,
+      navigationRailLabelType: NavigationRailLabelType.all,
+    ),
+    keyColors: const FlexKeyColors(
+      useTertiary: true,
+      useError: true,
+      useExpressiveOnContainerColors: true,
+    ),
+    tones: FlexSchemeVariant.soft.tones(Brightness.light),
+    visualDensity: FlexColorScheme.comfortablePlatformDensity,
+    cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
+  );
+
+  // The inverted dark theme.
+  static ThemeData dark = FlexThemeData.dark(
+    colors: const FlexSchemeColor(
+      // Inverted or complementary custom colors
+      primary: primaryDarkLighter, // Light theme's primaryLightRef
+      primaryContainer: primaryDark, // Light theme's primary
+      primaryLightRef: shapeColor3, // Light theme's primaryContainer
+      secondary: gradientOrange, // Light theme's secondaryContainer
+      secondaryContainer: primaryOrange, // Light theme's secondary
+      secondaryLightRef:
+          FlexColor.greenDarkPrimaryVariant, // Light theme's tertiaryLightRef
+      tertiary: FlexColor.blueM3DarkPrimary, // Light theme's tertiaryContainer
+      tertiaryContainer:
+          primaryDarkLighter, // Slightly lighter shade of the dark theme primary
+      tertiaryLightRef:
+          FlexColor.purpleM3LightPrimary, // Light theme's secondaryLightRef
+      appBarColor: Colors.black, // Dark app bar for contrast
+      error: Color(0xFFFFB4AB), // Complementary error color
+      errorContainer: Color(0xFF93000A), // Darker shade of error container
+    ),
+    subThemesData: const FlexSubThemesData(
+      interactionEffects: true,
+      tintedDisabledControls: true,
+      blendOnColors: true,
+      useM2StyleDividerInM3: true,
+      adaptiveSplash: FlexAdaptive.all(),
+      splashType: FlexSplashType.inkSplash,
+      adaptiveRadius: FlexAdaptive.all(),
+      defaultRadiusAdaptive: 7.0,
+      thinBorderWidth: 1.0,
+      inputDecoratorIsFilled: true,
+      inputDecoratorBorderType: FlexInputBorderType.outline,
+      alignedDropdown: true,
+      navigationRailUseIndicator: true,
+      navigationRailLabelType: NavigationRailLabelType.all,
+    ),
+    keyColors: const FlexKeyColors(
+      useTertiary: true,
+      useError: true,
+    ),
+    tones: FlexSchemeVariant.soft.tones(Brightness.dark),
+    visualDensity: FlexColorScheme.comfortablePlatformDensity,
+    cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
+  );
+}
