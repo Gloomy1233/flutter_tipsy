@@ -5,17 +5,25 @@ import 'package:sizer/sizer.dart';
 
 import '../../utils/constants.dart';
 import '../../widgets/background_widget.dart';
-import '../../widgets/full_screen_image.dart'; // Make sure to have sizer: ^2.0.15 in pubspec.yaml
+import '../../widgets/full_screen_image.dart';
 
 class PartyDetailPage extends StatefulWidget {
-  const PartyDetailPage(
-      {super.key,
-      required String title,
-      required String activities,
-      required String attire,
-      required String decor,
-      required String imageUrl,
-      required String iconUrl});
+  final String title;
+  final String activities;
+  final String attire;
+  final String decor;
+  final String imageUrl;
+  final String iconUrl;
+
+  const PartyDetailPage({
+    super.key,
+    required this.title,
+    required this.activities,
+    required this.attire,
+    required this.decor,
+    required this.imageUrl,
+    required this.iconUrl,
+  });
 
   @override
   State<PartyDetailPage> createState() => _PartyDetailPageState();
@@ -31,26 +39,19 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
     'https://plus.unsplash.com/premium_photo-1669472897414-098c530ffb64?q=80&w=1965&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   ];
 
+  double _bottomContainerHeightFactor = 0.3;
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
   }
 
-  double _bottomContainerHeightFactor = 0.3; // start at 0.5 (instead of 0.7)
-
   void _handleScroll() {
     double offset = _scrollController.offset;
-
-    // As offset increases (scrolling down), factor increases from 0.5 towards 0.7.
-    // For example, if offset = 0 => factor = 0.5
-    // if offset = 800 => factor = 0.7
     double factor = 0.5 + (offset / 400) * 0.2;
-
-    // Clamp the factor between 0.5 and 0.7
     if (factor > 0.7) factor = 0.7;
     if (factor < 0.3) factor = 0.3;
-
     if (factor != _bottomContainerHeightFactor) {
       setState(() {
         _bottomContainerHeightFactor = factor;
@@ -65,10 +66,6 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
         builder: (context) => FullScreenImage(
           imageUrl: imageUrl,
           onDelete: () {
-            // If you had a list of images and wanted to remove one:
-            // setState(() {
-            //   _images.remove(imageUrl);
-            // });
             Navigator.pop(context);
           },
         ),
@@ -113,15 +110,17 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                               if (progress.isDownloading &&
                                   progress.totalBytes != null)
                                 Text(
-                                    '${progress.downloadedBytes ~/ 1024} / ${progress.totalBytes! ~/ 1024} kb',
-                                    style: const TextStyle(color: Colors.red)),
+                                  '${progress.downloadedBytes ~/ 1024} / ${progress.totalBytes! ~/ 1024} kb',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
                               SizedBox(
-                                  width: 120,
-                                  height: 120,
-                                  child: CircularProgressIndicator(
-                                      color: Colors.red,
-                                      value:
-                                          progress.progressPercentage.value)),
+                                width: 120,
+                                height: 120,
+                                child: CircularProgressIndicator(
+                                  color: Colors.red,
+                                  value: progress.progressPercentage.value,
+                                ),
+                              ),
                             ],
                           ),
                         );
@@ -132,7 +131,8 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               },
             ),
           ),
-          // Back Button
+
+          // Cancel / Back Button
           SafeArea(
             minimum: EdgeInsets.only(
                 left: 45.w,
@@ -162,12 +162,12 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               icon: Icon(Icons.chevron_left, color: Colors.white, size: 10.w),
               onPressed: () {
                 _pageController.previousPage(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeIn);
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeIn,
+                );
               },
             ),
           ),
-
           Positioned(
             right: 1.w,
             height: 20.h / _bottomContainerHeightFactor,
@@ -176,17 +176,18 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               icon: Icon(Icons.chevron_right, color: Colors.white, size: 10.w),
               onPressed: () {
                 _pageController.nextPage(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeIn);
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeIn,
+                );
               },
             ),
           ),
 
-          // Bottom Content Card with NotificationListener to handle scrolling
+          // Bottom Content Card
           Align(
             alignment: Alignment.bottomCenter,
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
               height: 120.h * _bottomContainerHeightFactor,
               decoration: BoxDecoration(
@@ -203,7 +204,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                     child: BackgroundWidget(),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(left: 20, right: 20, top: 1.h),
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 8),
                     child: NotificationListener<ScrollNotification>(
                       onNotification: (notification) {
                         if (notification is ScrollUpdateNotification) {
@@ -213,6 +214,8 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
+                          // image: DecorationImage(
+                          //     image: FastCachedImageProvider(widget.imageUrl)),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: SingleChildScrollView(
@@ -227,15 +230,17 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 6,
-                                        offset: Offset(0, 3))
+                                      color: Colors.black12,
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    )
                                   ],
                                 ),
-                                padding: EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // Title Row (RAVE PARTY and "Free")
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -243,26 +248,64 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                         Text(
                                           "RAVE PARTY",
                                           style: TextStyle(
-                                              fontSize: 20.sp,
-                                              fontWeight: FontWeight.w700,
-                                              color: primaryDark),
+                                            fontSize: 20.sp,
+                                            fontWeight: FontWeight.w700,
+                                            color: primaryDark,
+                                          ),
                                         ),
                                         Text(
                                           "Free",
                                           style: TextStyle(
-                                              fontSize: 20.sp,
-                                              fontWeight: FontWeight.w700,
-                                              color: primaryDark),
+                                            fontSize: 20.sp,
+                                            fontWeight: FontWeight.w700,
+                                            color: primaryDark,
+                                          ),
                                         ),
                                       ],
                                     ),
                                     SizedBox(height: 1.h),
+                                    // Now show the extra details below "RAVE PARTY"
+                                    Text(
+                                      "Party Theme: ${widget.title}",
+                                      style: TextStyle(
+                                        fontSize: 15.sp,
+                                        color: primaryDark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: 1.h),
+                                    Text(
+                                      "Attire: ${widget.attire}",
+                                      style: TextStyle(
+                                        fontSize: 15.sp,
+                                        color: primaryDark,
+                                      ),
+                                    ),
+                                    SizedBox(height: 1.h),
+                                    Text(
+                                      "Decor: ${widget.decor}",
+                                      style: TextStyle(
+                                        fontSize: 15.sp,
+                                        color: primaryDark,
+                                      ),
+                                    ),
+                                    SizedBox(height: 1.h),
+                                    Text(
+                                      "Activities: ${widget.activities}",
+                                      style: TextStyle(
+                                        fontSize: 15.sp,
+                                        color: primaryDark,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2.h),
+
                                     // Description
                                     Text(
-                                      "RaveParty with a variety of music for the admirers of this culture.Bring your own booze.Please be aware there will be zero tolerance for drunk people so please drink responsibly. The party follows a Bring your own Booze policy so be prepared in Advance.",
+                                      "RaveParty with a variety of music for the admirers of this culture. Bring your own booze. Please be aware there will be zero tolerance for drunk people so please drink responsibly. The party follows a Bring your own Booze policy so be prepared in Advance.",
                                       style: TextStyle(
-                                          fontSize: 16.sp,
-                                          color: secondaryTextColor),
+                                        fontSize: 16.sp,
+                                        color: Colors.grey.shade700,
+                                      ),
                                     ),
                                     SizedBox(height: 2.h),
 
@@ -272,22 +315,24 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                     _buildFeatureRow(Icons.wifi, "Wifi"),
                                     _buildFeatureRow(Icons.home, "Large Place"),
                                     _buildFeatureRow(
-                                        Icons.speaker, "Woofer-SubWoofer"),
+                                      Icons.speaker,
+                                      "Woofer-SubWoofer",
+                                    ),
                                     _buildFeatureRow(Icons.music_note,
                                         "Edm-Rave-Drum n’Bass"),
-                                    _buildFeatureRow(Icons.wb_sunny_outlined,
-                                        "Cozy Atmosphere"),
+                                    _buildFeatureRow(
+                                      Icons.wb_sunny_outlined,
+                                      "Cozy Atmosphere",
+                                    ),
                                     _buildFeatureRow(Icons.hot_tub, "Hot Tub"),
-
                                     SizedBox(height: 2.h),
 
-                                    // Date, Time, Location, Guests row (Custom Icons)
-                                    // Example of custom styling and icons
+                                    // Date / Time / Location / Guests
                                     Column(
                                       children: [
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment
-                                              .spaceBetween, // Use spaceBetween here
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Row(
                                               crossAxisAlignment:
@@ -299,8 +344,9 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                 Text(
                                                   "5-5-2023",
                                                   style: TextStyle(
-                                                      color: primaryDark,
-                                                      fontSize: 16.sp),
+                                                    color: primaryDark,
+                                                    fontSize: 16.sp,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -309,8 +355,9 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                 Text(
                                                   "11:00 PM",
                                                   style: TextStyle(
-                                                      color: primaryDark,
-                                                      fontSize: 16.sp),
+                                                    color: primaryDark,
+                                                    fontSize: 16.sp,
+                                                  ),
                                                 ),
                                                 SizedBox(width: 1.w),
                                                 Icon(Icons.access_time,
@@ -335,9 +382,10 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                   Text(
                                                     "Request to see location",
                                                     style: TextStyle(
-                                                        color:
-                                                            secondaryTextColor,
-                                                        fontSize: 16.sp),
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                      fontSize: 16.sp,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -348,31 +396,36 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                 Text(
                                                   "119\\150",
                                                   style: TextStyle(
-                                                      color: primaryDark,
-                                                      fontSize: 16.sp),
+                                                    color: primaryDark,
+                                                    fontSize: 16.sp,
+                                                  ),
                                                 ),
                                                 Icon(Icons.group, size: 4.w),
                                               ],
-                                            )
+                                            ),
                                           ],
                                         ),
                                       ],
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
+
                               SizedBox(height: 2.h),
                               Divider(
-                                  thickness: 1, color: Colors.grey.shade300),
+                                thickness: 1,
+                                color: Colors.grey.shade300,
+                              ),
                               SizedBox(height: 2.h),
 
-                              // Hosted By Section
+                              // Hosted By
                               Text(
                                 "Hosted By",
                                 style: TextStyle(
-                                    fontSize: 17.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryDark),
+                                  fontSize: 17.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryDark,
+                                ),
                               ),
                               SizedBox(height: 1.h),
 
@@ -382,12 +435,13 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 6,
-                                        offset: Offset(0, 2))
+                                      color: Colors.black12,
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    )
                                   ],
                                 ),
-                                padding: EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(16),
                                 child: Row(
                                   children: [
                                     CircleAvatar(
@@ -396,7 +450,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                       ),
                                       radius: 30,
                                     ),
-                                    SizedBox(width: 10),
+                                    const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -407,75 +461,102 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                               Text(
                                                 "George Papvasiliou",
                                                 style: TextStyle(
-                                                    fontSize: 15.sp,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: primaryDark),
+                                                  fontSize: 15.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: primaryDark,
+                                                ),
                                               ),
-                                              SizedBox(width: 5),
-                                              Icon(Icons.verified,
-                                                  color: Colors.green,
-                                                  size: 16.sp),
+                                              const SizedBox(width: 5),
+                                              Icon(
+                                                Icons.verified,
+                                                color: Colors.green,
+                                                size: 16.sp,
+                                              ),
                                             ],
                                           ),
                                           SizedBox(height: 0.5.h),
                                           Row(
                                             children: [
-                                              Icon(Icons.person_add_alt_1,
+                                              Icon(
+                                                Icons.person_add_alt_1,
+                                                color: Colors.blue,
+                                                size: 16.sp,
+                                              ),
+                                              SizedBox(width: 1.w),
+                                              Text(
+                                                "Follow",
+                                                style: TextStyle(
                                                   color: Colors.blue,
-                                                  size: 16.sp),
-                                              SizedBox(width: 1.w),
-                                              Text("Follow",
-                                                  style: TextStyle(
-                                                      color: Colors.blue,
-                                                      fontSize: 12.sp)),
+                                                  fontSize: 12.sp,
+                                                ),
+                                              ),
                                               SizedBox(width: 3.w),
-                                              Icon(Icons.call,
-                                                  color: Colors.red,
-                                                  size: 16.sp),
+                                              Icon(
+                                                Icons.call,
+                                                color: Colors.red,
+                                                size: 16.sp,
+                                              ),
                                               SizedBox(width: 1.w),
-                                              Text("+31 6955645845",
-                                                  style: TextStyle(
-                                                      fontSize: 12.sp,
-                                                      color: primaryDark)),
+                                              Text(
+                                                "+31 6955645845",
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  color: primaryDark,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                           SizedBox(height: 1.h),
                                           Row(
                                             children: [
-                                              Text("Reviews",
-                                                  style: TextStyle(
-                                                      fontSize: 12.sp,
-                                                      color: primaryDark)),
+                                              Text(
+                                                "Reviews",
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  color: primaryDark,
+                                                ),
+                                              ),
                                               SizedBox(width: 1.w),
-                                              Icon(Icons.star,
-                                                  color: Colors.amber,
-                                                  size: 16.sp),
-                                              Text("4.9",
-                                                  style: TextStyle(
-                                                      fontSize: 12.sp,
-                                                      color: primaryDark)),
+                                              Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                                size: 16.sp,
+                                              ),
+                                              Text(
+                                                "4.9",
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  color: primaryDark,
+                                                ),
+                                              ),
                                               SizedBox(width: 3.w),
                                               // Guests profile images
                                               Stack(
                                                 children: [
                                                   CircleAvatar(
-                                                    backgroundImage: NetworkImage(
-                                                        "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?fit=crop&w=100&q=80"),
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?fit=crop&w=100&q=80",
+                                                    ),
                                                     radius: 12,
                                                   ),
                                                   Positioned(
                                                     left: 18,
                                                     child: CircleAvatar(
-                                                      backgroundImage: NetworkImage(
-                                                          "https://images.unsplash.com/photo-1544723795-3e5b03c240f2?fit=crop&w=100&q=80"),
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                        "https://images.unsplash.com/photo-1544723795-3e5b03c240f2?fit=crop&w=100&q=80",
+                                                      ),
                                                       radius: 12,
                                                     ),
                                                   ),
                                                   Positioned(
                                                     left: 36,
                                                     child: CircleAvatar(
-                                                      backgroundImage: NetworkImage(
-                                                          "https://images.unsplash.com/photo-1527980965255-d3b416303d12?fit=crop&w=100&q=80"),
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                        "https://images.unsplash.com/photo-1527980965255-d3b416303d12?fit=crop&w=100&q=80",
+                                                      ),
                                                       radius: 12,
                                                     ),
                                                   ),
@@ -488,23 +569,24 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                       child: Text(
                                                         "200+",
                                                         style: TextStyle(
-                                                            fontSize: 8.sp,
-                                                            color: primaryDark),
+                                                          fontSize: 8.sp,
+                                                          color: primaryDark,
+                                                        ),
                                                       ),
                                                     ),
-                                                  )
+                                                  ),
                                                 ],
                                               ),
                                             ],
                                           ),
                                         ],
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
+
                               SizedBox(height: 7.h),
-                              // Request Button
                             ],
                           ),
                         ),
@@ -515,9 +597,15 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               ),
             ),
           ),
+
+          // Request Button
           SafeArea(
             minimum: EdgeInsets.only(
-                left: 25.w, right: 25.w, top: 95.h, bottom: -10.h),
+              left: 25.w,
+              right: 25.w,
+              top: 95.h,
+              bottom: -10.h,
+            ),
             left: true,
             right: true,
             child: GradientButton(
@@ -528,8 +616,10 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               height: 5.h,
               text: "Request",
               padding: const EdgeInsets.all(0),
-              radius: BorderRadius.only(
-                  topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+              radius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
             ),
           ),
         ],
@@ -545,8 +635,11 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
           Icon(icon, size: 16.sp, color: Colors.black87),
           SizedBox(width: 2.w),
           Expanded(
-              child: Text(text,
-                  style: TextStyle(fontSize: 16.sp, color: Colors.black87))),
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 16.sp, color: Colors.black87),
+            ),
+          ),
         ],
       ),
     );
