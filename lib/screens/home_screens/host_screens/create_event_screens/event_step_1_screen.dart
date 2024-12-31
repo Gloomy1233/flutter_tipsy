@@ -259,21 +259,19 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
             ),
             SizedBox(height: 2.h),
 
-            // Features Tags]
-            GestureDetector(
-              onTap: () => {},
-              child: Container(
-                  padding: EdgeInsets.all(3.w),
-                  decoration: BoxDecoration(
-                    color: primaryDarkLighter,
-                    borderRadius: BorderRadius.circular(3.w),
-                  ),
-                  child: Column(
-                    children: [
-                      SearchWidget(),
-                    ],
-                  )),
+            Container(
+              padding: EdgeInsets.all(3.w),
+              decoration: BoxDecoration(
+                color: primaryDarkLighter,
+                borderRadius: BorderRadius.circular(3.w),
+              ),
+              child: Column(
+                children: [
+                  SearchWidgetThemes(),
+                ],
+              ),
             ),
+
             SizedBox(height: 4.h),
 
             // Navigation Buttons

@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/screens/home_screens/widgets_home/search_widget.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../../utils/constants.dart';
-import '../../../../widgets/app_theme_text_form_field.dart';
 
 class EventStep3Screen extends StatefulWidget {
   const EventStep3Screen({super.key});
@@ -68,88 +68,9 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
           builder: (BuildContext context, BoxConstraints constraints) {
             return Column(
               children: [
+                // Display Search Resultsa
                 Text(
-                  "Search Party Themes",
-                  style: TextStyle(
-                    color: primaryDark,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w200,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                AppThemeTextFormField(
-                  controller: searchController,
-                  labelText: "Search",
-                  hintText: "Enter theme title",
-                  onChanged: (value) {
-                    performSearch(value.trim());
-                  },
-                  suffixIcon: Icon(Icons.search),
-                ),
-                SizedBox(height: 2.h),
-
-                // Display Search Results
-                if (searchResults.isNotEmpty)
-                  ListView.builder(
-                    shrinkWrap: true, // Important to prevent unbounded height
-                    physics:
-                        NeverScrollableScrollPhysics(), // To allow SingleChildScrollView to scroll
-                    itemCount: searchResults.length,
-                    itemBuilder: (context, index) {
-                      final item = searchResults[index];
-                      return Card(
-                        elevation: 2,
-                        margin: EdgeInsets.symmetric(vertical: 1.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(2.w),
-                          side: BorderSide(color: primaryDark, width: 1),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(2.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item['Title'] ?? 'No Title',
-                                style: TextStyle(
-                                  color: primaryDark,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 1.h),
-                              Text(
-                                "Activities: ${item['Activities'] ?? 'N/A'}",
-                                style: TextStyle(
-                                  color: primaryDark,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                              SizedBox(height: 0.5.h),
-                              Text(
-                                "Attire: ${item['Attire'] ?? 'N/A'}",
-                                style: TextStyle(
-                                  color: primaryDark,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                              SizedBox(height: 0.5.h),
-                              Text(
-                                "Decor: ${item['Decor'] ?? 'N/A'}",
-                                style: TextStyle(
-                                  color: primaryDark,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                Text(
-                  "Features",
+                  "Music",
                   style: TextStyle(
                     color: primaryDark,
                     fontSize: 16.sp,
@@ -159,47 +80,241 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                 SizedBox(height: 2.h),
 
                 // Features Tags
-                Container(
-                  padding: EdgeInsets.all(3.w),
-                  decoration: BoxDecoration(
-                    color: primaryDarkLighter,
-                    borderRadius: BorderRadius.circular(3.w),
-                  ),
-                  child: Column(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.search),
-                          hintText: "Search for parties...",
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(3.w),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            vertical: 0.5.h, // Adjust height
-                            horizontal: 12.0, // Adjust left and right padding
-                          ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: EdgeInsets.all(3.w),
+                    decoration: BoxDecoration(
+                      color: primaryDarkLighter,
+                      borderRadius: BorderRadius.circular(3.w),
+                    ),
+                    child: Column(
+                      children: [
+                        SearchWidgetModular(
+                          iconResolver: (String iconName) {
+                            switch (iconName) {
+                              case 'music_note':
+                                return Icons.music_note;
+                              case 'queue_music':
+                                return Icons.queue_music;
+                              case 'library_music':
+                                return Icons.library_music;
+                              case 'audiotrack':
+                                return Icons.audiotrack;
+                              case 'music_video':
+                                return Icons.music_video;
+                              case 'music_off':
+                                return Icons.music_off;
+                              case 'album':
+                                return Icons.album;
+                              case 'volume_up':
+                                return Icons.volume_up;
+                              case 'speaker':
+                                return Icons.speaker;
+                              // Add more cases as needed...
+                              default:
+                                return Icons.music_note; // Fallback icon
+                            }
+                          },
+                          collectionName: 'music',
+                          titleFieldName: 'Genre',
                         ),
-                        style: TextStyle(fontSize: 12.sp), // Smaller font size
-                      ),
-                      SizedBox(height: 2.h),
-                      Wrap(
-                        spacing: 2.w,
-                        runSpacing: 1.h,
-                        children: [
-                          _buildFeatureChip(
-                              "Strobe Lights/Laser Lights", Icons.light),
-                          _buildFeatureChip("Hot Tub", Icons.hot_tub),
-                          _buildFeatureChip("Large Place", Icons.house),
-                          _buildFeatureChip("Woofer-SubWoofer", Icons.speaker),
-                          _buildFeatureChip(
-                              "Edm-Rave-Drum n’Bass", Icons.music_note),
-                          _buildFeatureChip(
-                              "Bring your own booze", Icons.local_drink),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                ),
+                Text(
+                  "Foods & Drinks",
+                  style: TextStyle(
+                    color: primaryDark,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w200,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: EdgeInsets.all(3.w),
+                    decoration: BoxDecoration(
+                      color: primaryDarkLighter,
+                      borderRadius: BorderRadius.circular(3.w),
+                    ),
+                    child: Column(
+                      children: [
+                        SearchWidgetModular(
+                          iconResolver: (String iconName) {
+                            switch (iconName) {
+                              case 'local_bar':
+                                return Icons.local_bar;
+                              case 'wine_bar':
+                                return Icons.wine_bar;
+                              case 'fastfood':
+                                return Icons.fastfood;
+                              case 'local_pizza':
+                                return Icons.local_pizza;
+                              case 'takeout_dining':
+                                return Icons.takeout_dining;
+                              case 'lunch_dining':
+                                return Icons.lunch_dining;
+                              case 'dinner_dining':
+                                return Icons.dinner_dining;
+                              case 'ramen_dining':
+                                return Icons.ramen_dining;
+                              case 'free_breakfast':
+                                return Icons.free_breakfast;
+                              case 'bakery_dining':
+                                return Icons.bakery_dining;
+                              case 'icecream':
+                                return Icons.icecream;
+                              default:
+                                return Icons.fastfood; // fallback
+                            }
+                          },
+                          collectionName: 'drinks_foods',
+                          titleFieldName: 'title',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Text(
+                  "Amenities",
+                  style: TextStyle(
+                    color: primaryDark,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w200,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+
+                // Features Tags
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    padding: EdgeInsets.all(3.w),
+                    decoration: BoxDecoration(
+                      color: primaryDarkLighter,
+                      borderRadius: BorderRadius.circular(3.w),
+                    ),
+                    child: Column(
+                      children: [
+                        SearchWidgetModular(
+                          iconResolver: (String iconName) {
+                            switch (iconName) {
+                              case 'pool':
+                                return Icons.pool;
+                              case 'wifi':
+                                return Icons.wifi;
+                              case 'fireplace':
+                                return Icons.fireplace;
+                              case 'speaker':
+                                return Icons.speaker;
+                              case 'mic':
+                                return Icons.mic;
+                              case 'local_bar':
+                                return Icons.local_bar;
+                              case 'sports_bar':
+                                return Icons.sports_bar;
+                              case 'album':
+                                return Icons.album;
+                              case 'highlight':
+                                return Icons.highlight;
+                              case 'cloud':
+                                return Icons.cloud;
+                              case 'sports_esports':
+                                return Icons.sports_esports;
+                              case 'camera':
+                                return Icons.camera;
+                              case 'casino':
+                                return Icons.casino;
+                              case 'weekend':
+                                return Icons.weekend;
+                              case 'outdoor_grill':
+                                return Icons.outdoor_grill;
+                              case 'music_note':
+                                return Icons.music_note;
+                              case 'present_to_all':
+                                return Icons.present_to_all;
+                              case 'flare':
+                                return Icons.flare;
+                              case 'cabin':
+                                return Icons.cabin;
+                              case 'star':
+                                return Icons.star;
+                              case 'security':
+                                return Icons.security;
+                              case 'directions_car':
+                                return Icons.directions_car;
+                              case 'checkroom':
+                                return Icons.checkroom;
+                              case 'wc':
+                                return Icons.wc;
+                              case 'photo_camera':
+                                return Icons.photo_camera;
+                              case 'assistant_photo':
+                                return Icons.assistant_photo;
+                              case 'local_florist':
+                                return Icons.local_florist;
+                              case 'celebration':
+                                return Icons.celebration;
+                              case 'bakery_dining':
+                                return Icons.bakery_dining;
+                              case 'emoji_food_beverage':
+                                return Icons.emoji_food_beverage;
+                              case 'local_drink':
+                                return Icons.local_drink;
+                              case 'wine_bar':
+                                return Icons.wine_bar;
+                              case 'medical_services':
+                                return Icons.medical_services;
+                              case 'restaurant':
+                                return Icons.restaurant;
+                              case 'restaurant_menu':
+                                return Icons.restaurant_menu;
+                              case 'local_movies':
+                                return Icons.local_movies;
+                              case 'local_cafe':
+                                return Icons.local_cafe;
+                              case 'smoking_rooms':
+                                return Icons.smoking_rooms;
+                              case 'headphones':
+                                return Icons.headphones;
+                              case 'waves':
+                                return Icons.waves;
+                              case 'wb_incandescent':
+                                return Icons.wb_incandescent;
+                              case 'child_care':
+                                return Icons.child_care;
+                              case 'brush':
+                                return Icons.brush;
+                              case 'light_mode':
+                                return Icons.light_mode;
+                              case 'emoji_objects':
+                                return Icons.emoji_objects;
+                              case 'wb_sunny':
+                                return Icons.wb_sunny;
+                              case 'whatshot':
+                                return Icons.whatshot;
+                              case 'slideshow':
+                                return Icons.slideshow;
+                              case 'ac_unit':
+                                return Icons.ac_unit;
+                              case 'theaters':
+                                return Icons.theaters;
+                              case 'timer':
+                                return Icons.timer;
+                              default:
+                                // fallback if unknown
+                                return Icons
+                                    .party_mode; // or your preferred fallback // Fallback icon
+                            }
+                          },
+                          collectionName: 'amenities',
+                          titleFieldName: 'title',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(height: 4.h),

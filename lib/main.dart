@@ -73,7 +73,7 @@ class _MyAppState extends State<MyApp> {
             theme: AppTheme.light, // Use light theme
             darkTheme: AppTheme.dark, // Use dark theme
             themeMode: _themeMode,
-            initialRoute: '/login',
+            initialRoute: '/test',
             routes: {
               '/login': (context) => const LoginScreen(),
               '/signup': (context) => const RegisterScreen(),

@@ -266,7 +266,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                     SizedBox(height: 1.h),
                                     // Now show the extra details below "RAVE PARTY"
                                     Text(
-                                      "Party Theme: ${widget.title}",
+                                      "Theme: ${widget.title}",
                                       style: TextStyle(
                                         fontSize: 15.sp,
                                         color: primaryDark,

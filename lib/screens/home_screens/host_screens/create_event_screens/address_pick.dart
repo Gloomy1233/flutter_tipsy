@@ -48,18 +48,14 @@ class _AddressPickState extends State<AddressPick> {
 
   Future<void> uploadThemes() async {
     WriteBatch batch = _firestore.batch();
-    CollectionReference themesRef = _firestore.collection('partyThemes');
-    var i = 0;
-    for (Map<String, dynamic> vik in themeList) {
-      if (imageUrls.length > i) {
-        vik["image"] = imageUrls[i];
-        DocumentReference docRef = themesRef.doc(); // Auto-generated ID
-        batch.set(docRef, vik);
-        i++;
-      }
-
-      // await batch.commit();
+    CollectionReference themesRef = _firestore.collection('amenities');
+    for (Map<String, dynamic> vik in featuresList) {
+      DocumentReference docRef = themesRef.doc(); // Auto-generated ID
+      batch.set(docRef, vik);
     }
+
+    // await batch.commit();
+
     try {
       await batch.commit();
       print('All themes uploaded successfully!');
@@ -67,6 +63,129 @@ class _AddressPickState extends State<AddressPick> {
       print('Error uploading themes: $e');
     }
   }
+
+  List<Map<String, String>> featuresList = [
+    // 1
+    {'title': 'Pool', 'icon': 'pool'},
+    // 2
+    {'title': 'WiFi', 'icon': 'wifi'},
+    // 3
+    {'title': 'Cozy Atmosphere', 'icon': 'fireplace'},
+    // 4
+    {'title': 'Woofer', 'icon': 'speaker'},
+    // 5
+    {'title': 'Karaoke', 'icon': 'mic'},
+    // 6
+    {'title': 'Open Bar', 'icon': 'local_bar'},
+    // 7
+    {'title': 'Dance Floor', 'icon': 'sports_bar'},
+    // 8
+    {'title': 'DJ Booth', 'icon': 'album'},
+    // 9
+    {'title': 'Neon Lights', 'icon': 'highlight'},
+    // 10
+    {'title': 'Disco Ball', 'icon': 'album'},
+    // 11
+    {'title': 'Smoke Machine', 'icon': 'cloud'},
+    // 12
+    {'title': 'Arcade Games', 'icon': 'sports_esports'},
+    // 13
+    {'title': 'Photo Booth', 'icon': 'camera'},
+    // 14
+    {'title': 'Board Games', 'icon': 'casino'},
+    // 15
+    {'title': 'Card Games', 'icon': 'casino'},
+    // 16
+    {'title': 'Lounge Seats', 'icon': 'weekend'},
+    // 17
+    {'title': 'Outdoor Patio', 'icon': 'outdoor_grill'},
+    // 18
+    {'title': 'Fire Pit', 'icon': 'fireplace'},
+    // 19
+    {'title': 'Backyard BBQ', 'icon': 'outdoor_grill'},
+    // 20
+    {'title': 'Live Band', 'icon': 'music_note'},
+    // 21
+    {'title': 'Projector Screen', 'icon': 'present_to_all'},
+    // 22
+    {'title': 'Laser Show', 'icon': 'flare'},
+    // 23
+    {'title': 'Tent Setup', 'icon': 'cabin'},
+    // 24
+    {'title': 'VIP Lounge', 'icon': 'star'},
+    // 25
+    {'title': 'Security', 'icon': 'security'},
+    // 26
+    {'title': 'Valet Parking', 'icon': 'directions_car'},
+    // 27
+    {'title': 'Coat Check', 'icon': 'checkroom'},
+    // 28
+    {'title': 'Restrooms', 'icon': 'wc'},
+    // 29
+    {'title': 'Paparazzi', 'icon': 'photo_camera'},
+    // 30
+    {'title': 'Red Carpet', 'icon': 'assistant_photo'},
+    // 31
+    {'title': 'Flower Decor', 'icon': 'local_florist'},
+    // 32
+    {'title': 'Balloons', 'icon': 'celebration'},
+    // 33
+    {'title': 'Confetti', 'icon': 'celebration'},
+    // 34
+    {'title': 'Chocolate Fountain', 'icon': 'bakery_dining'},
+    // 35
+    {'title': 'Candy Buffet', 'icon': 'bakery_dining'},
+    // 36
+    {'title': 'Fruit Bar', 'icon': 'emoji_food_beverage'},
+    // 37
+    {'title': 'Mocktail Station', 'icon': 'local_drink'},
+    // 38
+    {'title': 'Champagne Toast', 'icon': 'wine_bar'},
+    // 39
+    {'title': 'Hangover Kits', 'icon': 'medical_services'},
+    // 40
+    {'title': 'Catering Service', 'icon': 'restaurant'},
+    // 41
+    {'title': 'Private Chef', 'icon': 'restaurant_menu'},
+    // 42
+    {'title': 'Live Cooking', 'icon': 'restaurant_menu'},
+    // 43
+    {'title': 'Popcorn Machine', 'icon': 'local_movies'},
+    // 44
+    {'title': 'Slushy Machine', 'icon': 'local_cafe'},
+    // 45
+    {'title': 'Cotton Candy', 'icon': 'bakery_dining'},
+    // 46
+    {'title': 'Cigar Lounge', 'icon': 'smoking_rooms'},
+    // 47
+    {'title': 'Hookah Lounge', 'icon': 'smoking_rooms'},
+    // 48
+    {'title': 'Silent Disco', 'icon': 'headphones'},
+    // 49
+    {'title': 'Foam Party', 'icon': 'waves'},
+    // 50
+    {'title': 'UV Party', 'icon': 'wb_incandescent'},
+    // 51
+    {'title': 'Kiddie Pool', 'icon': 'child_care'},
+    // 52
+    {'title': 'Face Painting', 'icon': 'brush'},
+    // 53
+    {'title': 'Glow Sticks', 'icon': 'light_mode'},
+    // 54
+    {'title': 'Lanterns', 'icon': 'emoji_objects'},
+    // 55
+    {'title': 'Heated Patio', 'icon': 'wb_sunny'},
+    // 56
+    {'title': 'Sparking Fireworks', 'icon': 'whatshot'},
+    // 57
+    {'title': 'Photo Slideshow', 'icon': 'slideshow'},
+    // 58
+    {'title': 'Ice Sculpture', 'icon': 'ac_unit'},
+    // 59
+    {'title': 'Open Stage', 'icon': 'theaters'},
+    // 60
+    {'title': 'Midnight Countdown', 'icon': 'timer'},
+  ];
 
   List<String> imageUrls = [
     "https://tse3.mm.bing.net/th?id=OIP.7q3n7ErAhTEQp2JfK7dQLgHaEl&w=200&h=124&c=7",
@@ -119,6 +238,313 @@ class _AddressPickState extends State<AddressPick> {
     "https://tse3.mm.bing.net/th?id=OIP.2VOGCYS7iDDELM8cfSYXWAAAAA&w=200&h=200&c=7"
   ];
 
+  List<Map<String, String>> itemsList = [
+    // -- DRINKS (30) --
+    {'title': 'Vodka', 'icon': 'local_bar'},
+    {'title': 'Tequila', 'icon': 'local_bar'},
+    {'title': 'Whiskey', 'icon': 'local_bar'},
+    {'title': 'Rum', 'icon': 'local_bar'},
+    {'title': 'Gin', 'icon': 'local_bar'},
+    {'title': 'Beer', 'icon': 'local_bar'},
+    {'title': 'Wine', 'icon': 'wine_bar'},
+    {'title': 'Champagne', 'icon': 'wine_bar'},
+    {'title': 'Bourbon', 'icon': 'local_bar'},
+    {'title': 'Scotch', 'icon': 'local_bar'},
+    {'title': 'Brandy', 'icon': 'local_bar'},
+    {'title': 'Cognac', 'icon': 'local_bar'},
+    {'title': 'Mezcal', 'icon': 'local_bar'},
+    {'title': 'Sake', 'icon': 'local_bar'},
+    {'title': 'Baileys', 'icon': 'local_bar'},
+    {'title': 'Kahlúa', 'icon': 'local_bar'},
+    {'title': 'Absinthe', 'icon': 'local_bar'},
+    {'title': 'Triple Sec', 'icon': 'local_bar'},
+    {'title': 'Schnapps', 'icon': 'local_bar'},
+    {'title': 'Soju', 'icon': 'local_bar'},
+    {'title': 'Pálinka', 'icon': 'local_bar'},
+    {'title': 'Rakija', 'icon': 'local_bar'},
+    {'title': 'Vermouth', 'icon': 'local_bar'},
+    {'title': 'Sherry', 'icon': 'local_bar'},
+    {'title': 'Port', 'icon': 'wine_bar'},
+    {'title': 'Aperol', 'icon': 'wine_bar'},
+    {'title': 'Campari', 'icon': 'wine_bar'},
+    {'title': 'Cointreau', 'icon': 'local_bar'},
+    {'title': 'Limoncello', 'icon': 'wine_bar'},
+    {'title': 'Grand Marnier', 'icon': 'local_bar'},
+
+    // -- FOODS (30) --
+    {'title': 'Pizza', 'icon': 'local_pizza'},
+    {'title': 'Hamburger', 'icon': 'fastfood'},
+    {'title': 'Cheeseburger', 'icon': 'fastfood'},
+    {'title': 'Tacos', 'icon': 'takeout_dining'},
+    {'title': 'Burrito', 'icon': 'lunch_dining'},
+    {'title': 'Hot Dog', 'icon': 'lunch_dining'},
+    {'title': 'Fried Chicken', 'icon': 'dinner_dining'},
+    {'title': 'Sushi', 'icon': 'ramen_dining'},
+    {'title': 'Ramen', 'icon': 'ramen_dining'},
+    {'title': 'Pad Thai', 'icon': 'lunch_dining'},
+    {'title': 'Pasta', 'icon': 'lunch_dining'},
+    {'title': 'Mac & Cheese', 'icon': 'lunch_dining'},
+    {'title': 'Salad', 'icon': 'lunch_dining'},
+    {'title': 'Nachos', 'icon': 'fastfood'},
+    {'title': 'Quesadilla', 'icon': 'fastfood'},
+    {'title': 'Steak', 'icon': 'dinner_dining'},
+    {'title': 'BBQ Ribs', 'icon': 'dinner_dining'},
+    {'title': 'Roasted Chicken', 'icon': 'dinner_dining'},
+    {'title': 'Fish & Chips', 'icon': 'dinner_dining'},
+    {'title': 'Lobster Roll', 'icon': 'dinner_dining'},
+    {'title': 'Omelette', 'icon': 'free_breakfast'},
+    {'title': 'Pancakes', 'icon': 'free_breakfast'},
+    {'title': 'Waffles', 'icon': 'free_breakfast'},
+    {'title': 'French Toast', 'icon': 'free_breakfast'},
+    {'title': 'Donuts', 'icon': 'bakery_dining'},
+    {'title': 'Cupcakes', 'icon': 'bakery_dining'},
+    {'title': 'Cookies', 'icon': 'bakery_dining'},
+    {'title': 'Brownies', 'icon': 'bakery_dining'},
+    {'title': 'Ice Cream', 'icon': 'icecream'},
+  ];
+
+  List<Map<String, dynamic>> musicList = [
+    {
+      'Genre': 'Pop Party',
+      'icon': 'music_note',
+    },
+    {
+      'Genre': 'EDM Party',
+      'icon': 'music_note',
+    },
+    {
+      'Genre': 'House Party',
+      'icon': 'queue_music',
+    },
+    {
+      'Genre': 'Deep House Party',
+      'icon': 'queue_music',
+    },
+    {
+      'Genre': 'Tech House Party',
+      'icon': 'queue_music',
+    },
+    {
+      'Genre': 'Tropical House Party',
+      'icon': 'queue_music',
+    },
+    {
+      'Genre': 'Progressive House Party',
+      'icon': 'queue_music',
+    },
+    {
+      'Genre': 'Future House Party',
+      'icon': 'queue_music',
+    },
+    {
+      'Genre': 'Disco Night',
+      'icon': 'library_music',
+    },
+    {
+      'Genre': 'Funk Jam',
+      'icon': 'library_music',
+    },
+    {
+      'Genre': 'Nu Disco Night',
+      'icon': 'library_music',
+    },
+    {
+      'Genre': 'Hip-Hop Bash',
+      'icon': 'audiotrack',
+    },
+    {
+      'Genre': 'Old School Hip-Hop',
+      'icon': 'audiotrack',
+    },
+    {
+      'Genre': 'Trap Fest',
+      'icon': 'audiotrack',
+    },
+    {
+      'Genre': 'Hard Trap Vibes',
+      'icon': 'audiotrack',
+    },
+    {
+      'Genre': 'R&B Late Night',
+      'icon': 'library_music',
+    },
+    {
+      'Genre': 'Reggaeton Fiesta',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'Salsa Social',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'Bachata Nights',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'Merengue Move',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'Moombahton Madness',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'Afrobeat Vibes',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'Amapiano Sessions',
+      'icon': 'music_video',
+    },
+    {
+      'Genre': 'K-pop Dance Off',
+      'icon': 'music_off',
+    },
+    {
+      'Genre': 'Bollywood Blast',
+      'icon': 'music_off',
+    },
+    {
+      'Genre': 'Bhangra Energy',
+      'icon': 'music_off',
+    },
+    {
+      'Genre': 'Big Room EDM',
+      'icon': 'music_off',
+    },
+    {
+      'Genre': 'Dubstep Rumble',
+      'icon': 'music_off',
+    },
+    {
+      'Genre': 'Bass House Beats',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Electro House Heat',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Drum and Bass Rally',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Techno Night',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Melodic Techno Journey',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Hardstyle Storm',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Psytrance Trip',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Trance Uplift',
+      'icon': 'album',
+    },
+    {
+      'Genre': 'Future Bass Buzz',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Twerk & Shake',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Jersey Club Hop',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Mashups Galore',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Party Anthems',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Club Anthems',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Open Format Fun',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Electro Pop Party',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Eurodance Throwdown',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Dancehall Wave',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Soca Carnival',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Latin Pop Groove',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Chill House Hangout',
+      'icon': 'volume_up',
+    },
+    {
+      'Genre': 'Lounge Vibes',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'Party Classics',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': '80s Pop Flashback',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': '90s Pop Replay',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': '2000s Hits Rewind',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'Throwback Hip-Hop',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'Mashup Mania',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'Glitch Hop Groove',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'G-House Grind',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'Melbourne Bounce Bash',
+      'icon': 'speaker',
+    },
+    {
+      'Genre': 'Festival EDM Frenzy',
+      'icon': 'speaker',
+    },
+  ];
   List<Map<String, dynamic>> themeList = [
     // Theme 1
     {
