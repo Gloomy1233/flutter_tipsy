@@ -3,12 +3,16 @@ import 'dart:io';
 
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/utils/constants.dart';
 import 'package:flutter_tipsy/viewmodels/user_model.dart';
 import 'package:flutter_tipsy/widgets/show_delete_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
+import '../../../../viewmodels/create_event_view_model.dart';
 import '../../../../viewmodels/user_view_model.dart';
 
 class EventStep4Screen extends StatefulWidget {
@@ -25,11 +29,20 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
   List<bool> _uploadingFlags = [];
   late Timer _longPressTimer;
   bool _isLongPressing = false;
+  bool _isMounted = true;
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
+
     _loadUploadedImages();
+  }
+
+  @override
+  void dispose() {
+    _isMounted = false;
+    super.dispose();
   }
 
   Future<void> _loadUploadedImages() async {
@@ -49,94 +62,97 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
           String downloadUrl = await ref.getDownloadURL();
           urls.add(downloadUrl);
         }
-
-        setState(() {
-          _downloadedImageUrls = urls;
-        });
+        if (_isMounted) {
+          setState(() {
+            _downloadedImageUrls = urls;
+          });
+        }
       } catch (e) {
         print('Error loading images: $e');
       }
     }
   }
 
-  Future<void> pickMultipleImages(UserDataModel userData) async {
+  Future<void> pickMultipleImages(
+      UserDataModel userData, CreateEventViewModel partyProvider) async {
     try {
       final List<XFile> selectedImages = await _picker.pickMultiImage();
       setState(() {
         _images = selectedImages;
+        partyProvider.images = _downloadedImageUrls;
         _uploadingFlags = List.generate(selectedImages.length, (_) => true);
       });
 
       // Start uploading images immediately
       for (int i = 0; i < _images!.length; i++) {
-        _uploadImage(userData, _images![i], i);
+        _uploadImage(userData, _images![i], i, partyProvider);
       }
     } catch (e) {
       print('Error picking images: $e');
     }
   }
 
-  Future<void> _uploadImage(
-      UserDataModel userData, XFile imageFile, int index) async {
-    File file = File(imageFile.path);
-    String fileName =
-        imageFile.path.substring(imageFile.path.lastIndexOf('/') + 1);
+  Future<void> _uploadImage(UserDataModel userData, XFile imageFile, int index,
+      CreateEventViewModel partyProvider) async {
+    if (kIsWeb) {
+      // Handle web-specific upload
+      Uint8List fileBytes = await imageFile.readAsBytes();
+      String fileName = imageFile.name;
 
-    try {
-      // Upload to Firebase Storage
-      Reference storageRef = FirebaseStorage.instance
-          .ref()
-          .child('profile_uploads/${userData.uid}/$fileName');
-      await storageRef.putFile(file);
+      try {
+        Reference storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_uploads/${userData.uid}/$fileName');
+        await storageRef.putData(fileBytes);
 
-      // Get download URL
-      String downloadURL = await storageRef.getDownloadURL();
-      print('Uploaded $fileName, download URL: $downloadURL');
-
-      // Update UI after upload
-      setState(() {
-        _uploadingFlags[index] = false;
-        _downloadedImageUrls.add(downloadURL);
-      });
-    } catch (e) {
-      print('Error uploading $fileName: $e');
-      setState(() {
-        _uploadingFlags[index] =
-            false; // Indicate upload finished even if it failed
-      });
+        String downloadURL = await storageRef.getDownloadURL();
+        setState(() {
+          _uploadingFlags[index] = false;
+          _downloadedImageUrls.add(downloadURL);
+          partyProvider.images = _downloadedImageUrls;
+        });
+      } catch (e) {
+        print('Error uploading image: $e');
+        setState(() {
+          _uploadingFlags[index] = false;
+        });
+      }
+    } else {
+      // Mobile-specific upload
+      File file = File(imageFile.path);
+      // Continue with existing logic
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final userViewModel = Provider.of<UserViewModel>(context);
+    final partyProvider = Provider.of<CreateEventViewModel>(context);
 
     if (userViewModel.userDataModel == null) {
       userViewModel.fetchUserData();
     }
-    return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.cyanAccent,
-              Colors.lightBlueAccent,
-              Colors.deepPurpleAccent,
-              Colors.purpleAccent,
-              Colors.pinkAccent,
-              Colors.lightGreenAccent,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomRight,
-          ),
-        ),
+    return SizedBox(
         child: userViewModel.userDataModel != null
-            ? _buildProfileContent(userViewModel.userDataModel!)
+            ? _buildProfileContent(userViewModel.userDataModel!, partyProvider)
             : _buildLoadingContent());
   }
 
-  Widget _buildProfileContent(UserDataModel userData) {
+  Widget _buildProfileContent(
+      UserDataModel userData, CreateEventViewModel partyProvider) {
     return Stack(
       children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            "Add Images For the Party    ",
+            style: TextStyle(
+              color: primaryDark,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
         Column(
           children: [
             SizedBox(height: kToolbarHeight + 20),
@@ -147,12 +163,14 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
           ],
         ),
         Positioned(
-          bottom: 16,
-          right: 16,
+          bottom: 20,
+          right: 40.w,
+          left: 40.w,
           child: FloatingActionButton(
-            onPressed: () => pickMultipleImages(userData),
-            backgroundColor: Colors.blueAccent,
-            child: Icon(Icons.add_photo_alternate, color: Colors.white),
+            onPressed: () => pickMultipleImages(userData, partyProvider),
+            backgroundColor: primaryDark,
+            splashColor: primaryOrange,
+            child: Icon(Icons.add_photo_alternate, color: primaryPink),
           ),
         ),
       ],

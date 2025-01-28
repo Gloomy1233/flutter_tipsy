@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../utils/constants.dart';
+import '../../../viewmodels/create_event_view_model.dart';
 import '../../common_screens/party_details_screen.dart';
 
 //Example primary colors - adjust to match your UI
@@ -60,65 +62,62 @@ class _SearchWidgetThemesState extends State<SearchWidgetThemes> {
         SizedBox(height: 2.h),
 
         // StreamBuilder that listens to the partyThemes collection
-        Expanded(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('partyThemes')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                  ),
-                );
-              }
-
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(
-                  child: Text(
-                    "No party themes found.",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              }
-
-              // Filter documents based on search query if needed
-              final filteredDocs = snapshot.data!.docs.where((doc) {
-                final title = (doc['Title'] ?? '').toString().toLowerCase();
-                return title.contains(_searchQuery);
-              }).toList();
-
-              if (filteredDocs.isEmpty) {
-                return Center(
-                  child: Text(
-                    "No matching party themes.",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              }
-
-              return SingleChildScrollView(
-                child: Wrap(
-                  spacing: 2.w,
-                  runSpacing: 1.h,
-                  children: filteredDocs.map((doc) {
-                    final title = doc['Title'] ?? 'Unknown';
-
-                    final iconUrl = doc['icon'] ?? '';
-
-                    return _buildFeatureChipFromData(
-                        title: doc['Title'] ?? 'Unknown',
-                        activities: doc['Activities'] ?? 'Unknown',
-                        attire: doc['Attire'] ?? 'Attire',
-                        decor: doc['Decor'] ?? 'Decor',
-                        iconUrl: '',
-                        imageUrl: doc['image'] ?? '');
-                  }).toList(),
+        StreamBuilder<QuerySnapshot>(
+          stream:
+              FirebaseFirestore.instance.collection('partyThemes').snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
                 ),
               );
-            },
-          ),
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: Text(
+                  "No party themes found.",
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+
+            // Filter documents based on search query if needed
+            final filteredDocs = snapshot.data!.docs.where((doc) {
+              final title = (doc['Title'] ?? '').toString().toLowerCase();
+              return title.contains(_searchQuery);
+            }).toList();
+
+            if (filteredDocs.isEmpty) {
+              return Center(
+                child: Text(
+                  "No matching party themes.",
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+
+            return SingleChildScrollView(
+              child: Wrap(
+                spacing: 2.w,
+                runSpacing: 1.h,
+                children: filteredDocs.map((doc) {
+                  final title = doc['Title'] ?? 'Unknown';
+
+                  final iconUrl = doc['icon'] ?? '';
+
+                  return _buildFeatureChipFromData(
+                      title: doc['Title'] ?? 'Unknown',
+                      activities: doc['Activities'] ?? 'Unknown',
+                      attire: doc['Attire'] ?? 'Attire',
+                      decor: doc['Decor'] ?? 'Decor',
+                      iconUrl: '',
+                      imageUrl: doc['image'] ?? '');
+                }).toList(),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -139,12 +138,13 @@ class _SearchWidgetThemesState extends State<SearchWidgetThemes> {
           context,
           MaterialPageRoute(
             builder: (context) => PartyDetailPage(
-              title: title,
-              activities: activities,
-              attire: attire,
-              decor: decor,
-              iconUrl: iconUrl,
-              imageUrl: imageUrl,
+              isPreview: true,
+              // title: title,
+              // activities: activities,
+              // attire: attire,
+              // decor: decor,
+              // iconUrl: iconUrl,
+              // imageUrl: imageUrl,
             ),
           ),
         );
@@ -194,10 +194,12 @@ class SearchWidgetModular extends StatefulWidget {
   /// An optional callback function to convert a string (icon name) into an IconData.
   final IconData Function(String)? iconResolver;
 
+  final String hintText;
   const SearchWidgetModular({
     Key? key,
     required this.collectionName, // e.g. 'music'
     required this.titleFieldName, // e.g. 'Genre'
+    required this.hintText,
     this.iconResolver,
   }) : super(key: key);
 
@@ -217,10 +219,15 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
 
   /// Keeps track of selected document IDs so they stay pinned.
   final List<String> _selectedDocIds = [];
+  late final Stream<QuerySnapshot> _stream;
+  // ...
 
   @override
   void initState() {
     super.initState();
+    _stream = FirebaseFirestore.instance
+        .collection(widget.collectionName)
+        .snapshots();
     // Listen for focus changes on the search bar:
     _searchFocusNode.addListener(() {
       // If the search bar loses focus, hide unselected chips.
@@ -234,6 +241,8 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
 
   @override
   Widget build(BuildContext context) {
+    final partyProvider = Provider.of<CreateEventViewModel>(context);
+
     return GestureDetector(
       // If user taps anywhere outside the textfield, lose focus (so _showUnselected = false).
       onTap: () {
@@ -245,7 +254,7 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
         runSpacing: 1.h,
         children: [
           _buildSearchBar(),
-          _buildChipList(),
+          _buildChipList(partyProvider),
         ],
       ),
     );
@@ -267,8 +276,8 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
             child: TextField(
               focusNode: _searchFocusNode,
               controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: "Search for parties...",
+              decoration: InputDecoration(
+                hintText: widget.hintText,
                 border: InputBorder.none,
               ),
               onTap: () {
@@ -290,20 +299,17 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
   }
 
   /// Builds the container that includes our StreamBuilder and the chip list.
-  Widget _buildChipList() {
+  Widget _buildChipList(CreateEventViewModel partyProvider) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(widget.collectionName) // <-- Use passed-in collectionName
-          .snapshots(),
+      stream: _stream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          // No data => show a small placeholder / minimal height
           return SizedBox(
-            height: 2.h, // or 0 for fully collapsed
+            height: 2.h,
             child: const Center(
               child: Text("No items found."),
             ),
@@ -312,29 +318,22 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
 
         final docs = snapshot.data!.docs;
 
-        // 1. Separate selected docs from unselected docs
+        // Separate selected docs from unselected docs
         final selectedDocs =
             docs.where((doc) => _selectedDocIds.contains(doc.id)).toList();
         final unselectedDocs =
             docs.where((doc) => !_selectedDocIds.contains(doc.id)).toList();
-        if (_searchQuery == "") {
-          unselectedDocs.clear();
-        }
-        // 2. Filter unselected docs by search query if _showUnselected is true
-        List<QueryDocumentSnapshot> filteredUnselectedDocs = [];
-        if (_showUnselected) {
-          filteredUnselectedDocs = unselectedDocs.where((doc) {
-            // Use passed-in titleFieldName (e.g. 'Genre', 'Title')
-            final titleValue =
-                (doc[widget.titleFieldName] ?? '').toString().toLowerCase();
-            return titleValue.contains(_searchQuery);
-          }).toList();
-        }
 
-        // 3. Combine selected docs (pinned) + filtered unselected docs
+        // Filter unselected docs by search query
+        final filteredUnselectedDocs = unselectedDocs.where((doc) {
+          final titleValue =
+              (doc[widget.titleFieldName] ?? '').toString().toLowerCase();
+          return titleValue.contains(_searchQuery);
+        }).toList();
+
+        // Combine selected and unselected docs
         final finalDocs = [...selectedDocs, ...filteredUnselectedDocs];
 
-        // If absolutely no docs to show, return minimal or zero height
         if (finalDocs.isEmpty) {
           return SizedBox(
             height: 2.h,
@@ -346,13 +345,12 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
 
         return ConstrainedBox(
           constraints: BoxConstraints(
-            // Let it grow up to 20% (example) or 30% of screen height, etc.
-            maxHeight: 15.h,
+            maxHeight: 15.h, // Adjust the height if needed
           ),
           child: SingleChildScrollView(
             child: Wrap(
               spacing: 2,
-              runSpacing: 0,
+              runSpacing: 1.h,
               children: finalDocs.map((doc) {
                 final docId = doc.id;
                 final titleValue =
@@ -363,41 +361,41 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
 
                 return GestureDetector(
                   onTap: () {
-                    if (!isSelected) {
-                      // Select it
-                      setState(() {
+                    setState(() {
+                      if (!isSelected) {
+                        // Add to selected items
                         _selectedDocIds.add(docId);
-                      });
-                    } else {
-                      // Optional: if you want to allow unselect on tap:
-                      // setState(() {
-                      //   _selectedDocIds.remove(docId);
-                      // });
-                    }
+                        partyProvider.music = _selectedDocIds;
+                      } else {
+                        // Remove from selected items
+                        _selectedDocIds.remove(docId);
+                        partyProvider.music = _selectedDocIds;
+                      }
+                    });
                   },
                   child: Chip(
-                    backgroundColor: isSelected ? primaryOrange : primaryDark,
+                    backgroundColor:
+                        isSelected ? primaryOrange : chipBackgroundColor,
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           widget.iconResolver != null
                               ? widget.iconResolver!(iconName)
-                              : Icons.error_outline,
-                          color: isSelected ? primaryDark : primaryOrange,
+                              : Icons.music_note,
+                          color: isSelected ? Colors.white : primaryDark,
                           size: 15.sp,
                         ),
                         Text(
                           titleValue,
                           style: TextStyle(
-                            fontSize: 14.sp,
-                            color: isSelected ? primaryDark : primaryOrange,
+                            fontSize: 10.sp,
+                            color: isSelected ? Colors.white : primaryDark,
                           ),
                         ),
                         if (isSelected)
                           GestureDetector(
                             onTap: () {
-                              // Remove from selected
                               setState(() {
                                 _selectedDocIds.remove(docId);
                               });
@@ -406,8 +404,8 @@ class _SearchWidgetModularState extends State<SearchWidgetModular> {
                               padding: EdgeInsets.only(left: 2.w),
                               child: Icon(
                                 Icons.close_rounded,
-                                size: 15.sp,
-                                color: primaryDark,
+                                size: 12.sp,
+                                color: Colors.white,
                               ),
                             ),
                           ),

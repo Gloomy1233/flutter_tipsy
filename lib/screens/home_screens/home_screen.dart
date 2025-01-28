@@ -1,5 +1,6 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/create_event_screen.dart';
 import 'package:flutter_tipsy/utils/constants.dart';
 
 import '../../viewmodels/user_model.dart';
@@ -8,9 +9,15 @@ import '../../widgets/background_widget.dart';
 class HomeScreen extends StatefulWidget {
   final UserDataModel? userData;
 
+  // NEW: optional parameters to control the initial state
+  final int initialIndex;
+  final bool isHostInitially;
+
   const HomeScreen({
     super.key,
     required this.userData,
+    this.initialIndex = 0, // default is 0
+    this.isHostInitially = false,
   });
 
   @override
@@ -20,6 +27,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   bool _isHost = false;
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex; // set the initial index
+    _isHost = widget.isHostInitially; // set the isHost state
+  }
 
   // Icons and screens for guest and host views
   final List<Widget> _guestScreens = screensMainScreenGuest;
@@ -64,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: CurvedNavigationBar(
               key: _navBarKey,
               index: _currentIndex,
-              height: 60,
+              height: (_isHost && _currentIndex == 2) ? 0 : 60,
               items: _currentIcons,
               color: primaryDark,
               buttonBackgroundColor: primaryDark,
@@ -79,7 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _onNavItemTap(int index, BuildContext context) async {
+  Future<void> _onNavItemTap(
+    int index,
+    BuildContext context,
+  ) async {
     if (index == 4) {
       // Handle user switch
       bool shouldProceed = await _showSwitchUserDialog(context);
@@ -89,6 +105,13 @@ class _HomeScreenState extends State<HomeScreen> {
         // Reset the navigation bar to the current index
         _navBarKey.currentState?.setPage(_currentIndex);
       }
+    } else if (_isHost == true && index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateEventScreen(),
+        ),
+      );
     } else {
       setState(() {
         _currentIndex = index;

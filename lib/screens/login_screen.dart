@@ -11,6 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sizer/sizer.dart';
 
 import '../utils/ThemePreferences.dart';
+import '../viewmodels/current_user.dart';
 import '../viewmodels/user_model.dart';
 import '../widgets/logo_selection.dart';
 
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (userDoc.exists) {
           UserDataModel userData = UserDataModel.fromMap(userDoc.data()!);
-
+          CurrentUser().user = userData;
           // Navigate to HomeScreen and pass userData
           Navigator.pushReplacement(
             context,

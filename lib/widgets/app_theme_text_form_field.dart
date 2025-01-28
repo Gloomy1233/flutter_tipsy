@@ -5,7 +5,7 @@ import '../utils/constants.dart'; // Ensure this imports your constants like gra
 
 class AppThemeTextFormField extends StatelessWidget {
   final String labelText;
-  final String? hintText; // New property for the hint text
+  final String? hintText; // Hint text
   final TextEditingController? controller;
   final bool obscureText;
   final Function(String)? onChanged;
@@ -14,11 +14,15 @@ class AppThemeTextFormField extends StatelessWidget {
   final bool readOnly;
   final TextInputType keyboardType;
   final int? maxLines;
+  final int? maxLength; // Add maxLength for the character counter
+  final String? errorText; // Add errorText for custom error messages
+  final FocusNode? focusNode; // FocusNode for managing focus behavior
+  final VoidCallback? onTap; // onTap for custom behavior
 
   const AppThemeTextFormField({
     Key? key,
     required this.labelText,
-    this.hintText, // Accepting the hintText as an optional parameter
+    this.hintText,
     this.controller,
     this.obscureText = false,
     this.onChanged,
@@ -27,33 +31,51 @@ class AppThemeTextFormField extends StatelessWidget {
     this.readOnly = false,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.maxLength, // Pass maxLength as a constructor argument
+    this.errorText,
+    this.focusNode,
+    this.onTap,
   }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Label
         Text(
           labelText,
           style: TextStyle(
-            color: primaryDarkLighter, // Required placeholder color
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w100,
+            color: primaryDarkLighter,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w300,
           ),
         ),
         const SizedBox(height: 8.0),
+
+        // TextFormField with counter and error handling
         TextFormField(
           controller: controller,
-          onChanged: onChanged,
-          obscureText: obscureText,
+          focusNode: focusNode,
+          onChanged: (value) {
+            // Trigger external onChanged if provided
+            if (onChanged != null) {
+              onChanged!(value);
+            }
+          },
+
           validator: validator,
+          obscureText: obscureText,
           readOnly: readOnly,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          showCursor: true,
+          maxLength: maxLength, // Enforce maxLength here
+          onTap: onTap,
           decoration: InputDecoration(
+            filled: true,
+            fillColor: primaryDarkLighter,
             enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: primaryPink, width: 3.0),
+              borderSide: BorderSide(color: primaryDarkLighter, width: 3.0),
             ),
             focusedBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: primaryOrange, width: 3.0),
@@ -64,16 +86,30 @@ class AppThemeTextFormField extends StatelessWidget {
             focusedErrorBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.red, width: 2.0),
             ),
-            errorStyle: const TextStyle(
-              color: Colors.red,
-            ),
-            filled: true,
-            fillColor: primaryDarkLighter,
-            suffixIcon: suffixIcon,
             hintText: hintText,
+            focusColor: primaryDarkLighter,
+            hoverColor: primaryDarkLighter,
+            hintStyle: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              foreground: Paint()
+                ..shader = gradientLight.createShader(
+                  const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
+                ),
+            ),
+            errorText: errorText, // Display custom error messages
+            counterText: maxLength != null
+                ? '${maxLength! - (controller?.text.length ?? 0)} characters remaining'
+                : null, // Show remaining characters if maxLength is defined
+            counterStyle: TextStyle(
+              fontSize: 10.sp,
+              color: primaryDark,
+            ),
+            suffixIcon: suffixIcon,
           ),
+
           style: TextStyle(
-            fontSize: 16.0,
+            fontSize: 16.sp,
             fontWeight: FontWeight.normal,
             foreground: Paint()
               ..shader = gradient.createShader(

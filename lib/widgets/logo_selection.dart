@@ -12,7 +12,7 @@ class LogoSection extends StatelessWidget {
       backgroundColor: Colors.white,
       child: ClipOval(
         child: Image.asset(
-          'assets/logo.png', // Replace with your logo asset path
+          'lib/assets/Logo.png', // Replace with your logo asset path
           fit: BoxFit.cover,
           width: 40.w,
           height: 40.w,

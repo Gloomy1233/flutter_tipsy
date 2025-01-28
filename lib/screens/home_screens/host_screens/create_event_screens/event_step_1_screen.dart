@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/viewmodels/create_event_view_model.dart';
+import 'package:flutter_tipsy/viewmodels/user_model.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../../utils/constants.dart';
+import '../../../../viewmodels/current_user.dart';
 import '../../../../widgets/app_theme_text_form_field.dart';
-import '../../widgets_home/search_widget.dart';
 
 class EventStep1Screen extends StatefulWidget {
   EventStep1Screen({super.key});
@@ -16,17 +19,75 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController paragraphController = TextEditingController();
   final TextEditingController maxGuestsController = TextEditingController();
-  final TextEditingController dateOfBirthController =
-      TextEditingController(text: "adsads");
+  final TextEditingController dateOfBirthController = TextEditingController();
+
+  final FocusNode titleFocusNode = FocusNode();
+  final FocusNode paragraphFocusNode = FocusNode();
+
+  String? titleError;
+  String? paragraphError;
 
   bool isAddressVisible = false;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Add listeners to the focus nodes
+    titleFocusNode.addListener(() {
+      if (!titleFocusNode.hasFocus) {
+        // Validate the title when it loses focus
+        if (titleController.text.length < 5) {
+          setState(() {
+            titleError = "Title must be at least 5 characters long.";
+          });
+        } else {
+          setState(() {
+            titleError = null;
+          });
+        }
+      }
+    });
+
+    paragraphFocusNode.addListener(() {
+      if (!paragraphFocusNode.hasFocus) {
+        // Validate the paragraph when it loses focus
+        if (paragraphController.text.length < 100) {
+          setState(() {
+            paragraphError = "Paragraph must be at least 100 characters long.";
+          });
+        } else {
+          setState(() {
+            paragraphError = null;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    paragraphController.dispose();
+    titleFocusNode.dispose();
+    paragraphFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final partyProvider = Provider.of<CreateEventViewModel>(context);
+    UserDataModel? currentUser = CurrentUser().user;
+    if (currentUser == null) {
+      Navigator.pushNamed(context, '/login');
+    } else {
+      partyProvider.uid = currentUser.uid;
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
+        padding: EdgeInsets.only(left: 4.w, right: 4.w, top: 8.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,32 +97,57 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
               style: TextStyle(
                 color: primaryDark,
                 fontSize: 18.sp,
-                fontWeight: FontWeight.w200,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: 2.h),
 
-            // Title Field
             AppThemeTextFormField(
-              controller: titleController,
               labelText: "Title",
-              hintText: "My Party",
+              hintText: "Enter a short title",
+              controller: titleController,
+
+              maxLength: 20,
+              errorText: titleError, // Pass dynamically set error
               onChanged: (value) {
-                // Handle title input change
+                partyProvider.title = value;
+
+                if (value.length >= 5) {
+                  setState(() {
+                    titleError = null; // Clear error
+                  });
+                } else {
+                  setState(() {
+                    titleError = "Title must be at least 5 characters long.";
+                  });
+                }
               },
             ),
+
             SizedBox(height: 4.h),
 
             // Paragraph Field
             AppThemeTextFormField(
+              labelText: "Description",
+              hintText: "Write something interesting about your event...",
               controller: paragraphController,
-              labelText: "Paragraph",
-              hintText: "Write something interesting about your event here...",
-              maxLines: 5,
+              maxLength: 200,
+              errorText: paragraphError, // Pass dynamically set error
               onChanged: (value) {
-                // Handle paragraph input change
+                partyProvider.description = value;
+                if (value.length >= 100) {
+                  setState(() {
+                    paragraphError = null; // Clear error
+                  });
+                } else {
+                  setState(() {
+                    paragraphError =
+                        "Description must be at least 100 characters long.";
+                  });
+                }
               },
             ),
+            SizedBox(height: 4.h),
             SizedBox(height: 4.h),
 
             // Open Party and Maximum Guests
@@ -77,8 +163,8 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                         "Open Party",
                         style: TextStyle(
                           color: primaryDark,
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w200,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w300,
                         ),
                       ),
                       SizedBox(height: 1.h),
@@ -87,7 +173,7 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                           Switch(
                             value: true, // Replace with actual state
                             onChanged: (value) {
-                              // Handle switch toggle
+                              partyProvider.isOpenParty = value;
                             },
                             activeColor: primaryOrange,
                           ),
@@ -112,7 +198,7 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                     hintText: "150",
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
-                      // Handle max guests input change
+                      partyProvider.maxGuests = int.parse(value);
                     },
                   ),
                 ),
@@ -129,8 +215,8 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                         "Want address to be visible",
                         style: TextStyle(
                           color: primaryDark,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w200,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w300,
                         ),
                       ),
                       SizedBox(width: 5),
@@ -141,6 +227,7 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                         onChanged: (value) {
                           setState(() {
                             isAddressVisible = value;
+                            partyProvider.isAddressVisible = value;
                           });
                         },
                         activeColor: primaryOrange,
@@ -178,7 +265,7 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                                   style: TextStyle(
                                     color: primaryDark,
                                     fontSize: 12.sp,
-                                    fontWeight: FontWeight.w100,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
@@ -197,12 +284,56 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                               readOnly: true,
                               textAlign: TextAlign.left,
                               onTap: () async {
-                                // Show date picker (your existing code)
+                                // 1) Show Date Picker
+                                final DateTime? pickedDate =
+                                    await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (pickedDate == null) return;
+
+                                // 2) Show Time Picker
+                                final TimeOfDay? pickedTime =
+                                    await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                      const TimeOfDay(hour: 12, minute: 0),
+                                );
+                                if (pickedTime == null) return;
+
+                                // 3) Combine date + time into a single DateTime
+                                final combinedDateTime = DateTime(
+                                  pickedDate.year,
+                                  pickedDate.month,
+                                  pickedDate.day,
+                                  pickedTime.hour,
+                                  pickedTime.minute,
+                                );
+
+                                // 4) Convert DateTime to a Firestore Timestamp
+
+                                // 5) Format the DateTime as a string for display (YYYY-MM-DD HH:mm)
+                                final formattedDateTime =
+                                    "${combinedDateTime.year}"
+                                    "-${combinedDateTime.month.toString().padLeft(2, '0')}"
+                                    "-${combinedDateTime.day.toString().padLeft(2, '0')} "
+                                    "${pickedTime.hour.toString().padLeft(2, '0')}:"
+                                    "${pickedTime.minute.toString().padLeft(2, '0')}";
+
+                                setState(() {
+                                  dateOfBirthController.text =
+                                      formattedDateTime;
+                                  // Example: store DateTime in your provider
+                                  partyProvider.date = combinedDateTime;
+                                  // Example: store Timestamp if you need it for Firestore
+                                  // partyProvider.timestamp = timestamp;  // (If you have a setter for that)
+                                });
                               },
-                              style: TextStyle(
-                                color: primaryDark,
-                              ),
+                              style: TextStyle(color: primaryDark),
                               decoration: const InputDecoration(
+                                filled: false,
                                 border: InputBorder.none,
                                 contentPadding:
                                     EdgeInsets.symmetric(horizontal: 8),
@@ -219,88 +350,11 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                   ),
                 ],
               ),
-            ),
-            // Removed the Expanded widget below
-            /*
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: 7.w),
-                child: TextFormField(
-                  controller: dateOfBirthController,
-                  readOnly: true,
-                  textAlign: TextAlign.left,
-                  onTap: () async {
-                    // Show date picker (your existing code)
-                  },
-                  style: TextStyle(
-                    color: primaryDark,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_right,
-              color: primaryDark,
-            ),
-            */
 
-            // Features Section
-            Text(
-              "Party Theme",
-              style: TextStyle(
-                color: primaryDark,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w200,
-              ),
-            ),
-            SizedBox(height: 2.h),
-
-            Container(
-              padding: EdgeInsets.all(3.w),
-              decoration: BoxDecoration(
-                color: primaryDarkLighter,
-                borderRadius: BorderRadius.circular(3.w),
-              ),
-              child: Column(
-                children: [
-                  SearchWidgetThemes(),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 4.h),
-
-            // Navigation Buttons
-            // Add your navigation buttons here
+              // Navigation Buttons
+            )
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureChip(String label, IconData icon) {
-    return Chip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: primaryOrange, size: 12.sp),
-          SizedBox(width: 1.w),
-          Text(
-            label,
-            style: TextStyle(
-              color: primaryDark,
-              fontSize: 10.sp,
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: Colors.grey.shade200,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(3.w),
       ),
     );
   }

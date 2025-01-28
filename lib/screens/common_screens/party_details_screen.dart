@@ -1,29 +1,29 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tipsy/widgets/gradient_button.dart';
+import 'package:flutter_tipsy/viewmodels/event_model.dart';
+import 'package:flutter_tipsy/viewmodels/user_model.dart';
+import 'package:flutter_tipsy/viewmodels/user_view_model.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../utils/constants.dart';
+import '../../utils/enums.dart';
+import '../../viewmodels/create_event_view_model.dart';
 import '../../widgets/background_widget.dart';
+import '../../widgets/firestore_chips.dart';
 import '../../widgets/full_screen_image.dart';
+import '../../widgets/gradient_button.dart';
 
 class PartyDetailPage extends StatefulWidget {
-  final String title;
-  final String activities;
-  final String attire;
-  final String decor;
-  final String imageUrl;
-  final String iconUrl;
+  final bool isPreview;
+  final EventModel? eventModel;
 
   const PartyDetailPage({
-    super.key,
-    required this.title,
-    required this.activities,
-    required this.attire,
-    required this.decor,
-    required this.imageUrl,
-    required this.iconUrl,
-  });
+    Key? key,
+    required this.isPreview,
+    this.eventModel,
+  }) : super(key: key);
 
   @override
   State<PartyDetailPage> createState() => _PartyDetailPageState();
@@ -32,12 +32,22 @@ class PartyDetailPage extends StatefulWidget {
 class _PartyDetailPageState extends State<PartyDetailPage> {
   final PageController _pageController = PageController();
   final ScrollController _scrollController = ScrollController();
-
-  final List<String> _images = [
-    'https://media.istockphoto.com/id/1391421103/photo/desert-sand-formations-in-saudi-arabia.jpg?s=2048x2048&w=is&k=20&c=POgrDbhZTpoDa4tW48rP28isvS0cizmJrlrw8EP7YW8=',
-    'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?fit=crop&w=800&q=80',
-    'https://plus.unsplash.com/premium_photo-1669472897414-098c530ffb64?q=80&w=1965&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  ];
+  // If you want to use images from the ViewModel, you can read them in initState
+  // or directly from the build method.
+  // Example local images (just for demonstration):
+  late List<String> _images = [];
+  UserDataModel userData = UserDataModel(
+      email: '',
+      accountType: false,
+      bio: '',
+      fullName: '',
+      dateOfBirth: '',
+      isPhoneVisible: false,
+      phone: '',
+      profilePictureUrl: '',
+      relationshipStatus: 0,
+      sex: 0,
+      uid: '');
 
   double _bottomContainerHeightFactor = 0.3;
 
@@ -45,6 +55,38 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_handleScroll);
+    super.dispose();
+  }
+
+  /// Example Firestore fetch. Replace with your collection and field as needed.
+  Future<void> fetchImagesFromFirestore() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('yourCollectionName') // Replace with your collection
+          .get();
+
+      // Collect the image URLs from the docs
+      _images = snapshot.docs.map((doc) {
+        return doc['imageUrl'] as String;
+      }).toList();
+
+      setState(() {}); // Trigger rebuild after fetching
+    } catch (e) {
+      debugPrint('Error fetching images: $e');
+    }
+  }
+
+  /// Fetch images from Firestore
+  Future<void> fetchUserId(String docId) async {
+    DocumentSnapshot<Map<String, dynamic>> userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(docId).get();
+
+    userData = UserDataModel.fromMap(userDoc.data()!);
   }
 
   void _handleScroll() {
@@ -75,27 +117,39 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryTextColor = Colors.grey.shade700;
-    final backgroundColor = Colors.black;
+    final EventModel party;
+    if (widget.isPreview) {
+      final eventViewModel = context.watch<CreateEventViewModel>();
+      party = eventViewModel.partyData;
+    } else {
+      party = widget.eventModel!;
+    }
+
+    final userViewModel = context.watch<UserViewModel>();
+    fetchUserId(party.uid);
+    // Example usage of your fields:
+    final String partyTitle = party.title;
+    // ... etc.
+    print(party.title);
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image Slider
+          // 1) Background Image Slider
+
           Positioned(
             height: 70.h,
             width: 100.w,
             child: PageView.builder(
               controller: _pageController,
-              itemCount: _images.length,
-              onPageChanged: (index) {},
+              itemCount: party.images.length,
               itemBuilder: (context, index) {
                 return GestureDetector(
-                  onTap: () => _showFullScreenImage(_images[index]),
+                  onTap: () => _showFullScreenImage(party.images[index]),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: FastCachedImage(
-                      url: _images[index],
+                      url: party.images[index],
                       fit: BoxFit.cover,
                       fadeInDuration: const Duration(seconds: 1),
                       errorBuilder: (context, exception, stacktrace) {
@@ -132,27 +186,25 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
             ),
           ),
 
-          // Cancel / Back Button
-          SafeArea(
-            minimum: EdgeInsets.only(
+          // 2) Cancel / Back Button
+          if (widget.isPreview != false)
+            SafeArea(
+              minimum: EdgeInsets.only(
                 left: 45.w,
                 top: 5.h * _bottomContainerHeightFactor,
-                right: 45.w),
-            left: true,
-            right: true,
-            child: IconButton(
-              icon: Icon(
-                Icons.cancel_rounded,
-                color: Colors.white,
-                size: 10.w,
+                right: 45.w,
               ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              child: IconButton(
+                icon: Icon(
+                  Icons.cancel_rounded,
+                  color: Colors.white,
+                  size: 10.w,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
-          ),
 
-          // Left and Right Arrows
+          // 3) Left and Right Arrows
           Positioned(
             left: 1.w,
             height: 20.h / _bottomContainerHeightFactor,
@@ -183,7 +235,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
             ),
           ),
 
-          // Bottom Content Card
+          // 4) Bottom Content Card
           Align(
             alignment: Alignment.bottomCenter,
             child: AnimatedContainer(
@@ -200,9 +252,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Positioned.fill(
-                    child: BackgroundWidget(),
-                  ),
+                  Positioned.fill(child: BackgroundWidget()),
                   Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 8),
                     child: NotificationListener<ScrollNotification>(
@@ -212,175 +262,152 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                         }
                         return false;
                       },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          // image: DecorationImage(
-                          //     image: FastCachedImageProvider(widget.imageUrl)),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title/Price/Description Container
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 3),
-                                    )
-                                  ],
-                                ),
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Title Row (RAVE PARTY and "Free")
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "RAVE PARTY",
-                                          style: TextStyle(
-                                            fontSize: 20.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: primaryDark,
-                                          ),
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Example Title Box
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title Row
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        partyTitle.isNotEmpty
+                                            ? partyTitle
+                                            : "Rave Party",
+                                        style: TextStyle(
+                                          fontSize: 20.sp,
+                                          fontWeight: FontWeight.w700,
+                                          color: primaryDark,
                                         ),
-                                        Text(
-                                          "Free",
-                                          style: TextStyle(
-                                            fontSize: 20.sp,
-                                            fontWeight: FontWeight.w700,
-                                            color: primaryDark,
-                                          ),
+                                      ),
+                                      Text(
+                                        "Free",
+                                        style: TextStyle(
+                                          fontSize: 20.sp,
+                                          fontWeight: FontWeight.w700,
+                                          color: primaryDark,
                                         ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 1.h),
-                                    // Now show the extra details below "RAVE PARTY"
-                                    Text(
-                                      "Theme: ${widget.title}",
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        color: primaryDark,
-                                        fontWeight: FontWeight.w600,
                                       ),
-                                    ),
-                                    SizedBox(height: 1.h),
-                                    Text(
-                                      "Attire: ${widget.attire}",
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        color: primaryDark,
-                                      ),
-                                    ),
-                                    SizedBox(height: 1.h),
-                                    Text(
-                                      "Decor: ${widget.decor}",
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        color: primaryDark,
-                                      ),
-                                    ),
-                                    SizedBox(height: 1.h),
-                                    Text(
-                                      "Activities: ${widget.activities}",
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        color: primaryDark,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2.h),
+                                    ],
+                                  ),
+                                  SizedBox(height: 1.h),
 
-                                    // Description
-                                    Text(
-                                      "RaveParty with a variety of music for the admirers of this culture. Bring your own booze. Please be aware there will be zero tolerance for drunk people so please drink responsibly. The party follows a Bring your own Booze policy so be prepared in Advance.",
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        color: Colors.grey.shade700,
-                                      ),
+                                  // Example of reading from your model...
+                                  Text(
+                                    "Theme: ${partyTitle.isNotEmpty ? partyTitle : "--"}",
+                                    style: TextStyle(
+                                      fontSize: 15.sp,
+                                      color: primaryDark,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    SizedBox(height: 2.h),
+                                  ),
+                                  SizedBox(height: 1.h),
+                                  Text(
+                                    party.description.isNotEmpty
+                                        ? party.description
+                                        : "Rave Party ... (sample description)",
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
 
-                                    // Features List with icons
-                                    _buildFeatureRow(Icons.flash_on,
-                                        "Strobe Lights/Laser Lights"),
-                                    _buildFeatureRow(Icons.wifi, "Wifi"),
-                                    _buildFeatureRow(Icons.home, "Large Place"),
-                                    _buildFeatureRow(
-                                      Icons.speaker,
-                                      "Woofer-SubWoofer",
-                                    ),
-                                    _buildFeatureRow(Icons.music_note,
-                                        "Edm-Rave-Drum n’Bass"),
-                                    _buildFeatureRow(
-                                      Icons.wb_sunny_outlined,
-                                      "Cozy Atmosphere",
-                                    ),
-                                    _buildFeatureRow(Icons.hot_tub, "Hot Tub"),
-                                    SizedBox(height: 2.h),
+                                  // If you have docIds for music, foods, etc.
+                                  FirestoreChips(
+                                      docIds: party.music +
+                                          party.foodsDrinks +
+                                          party.amenities),
+                                  const SizedBox(height: 20),
 
-                                    // Date / Time / Location / Guests
-                                    Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Icon(Icons.calendar_month,
-                                                    size: 4.w),
-                                                SizedBox(width: 1.w),
-                                                Text(
-                                                  "5-5-2023",
-                                                  style: TextStyle(
-                                                    color: primaryDark,
-                                                    fontSize: 16.sp,
-                                                  ),
+                                  // FirestoreChips(
+                                  //     collectionName: 'drinks_foods'),
+                                  // const SizedBox(height: 20),
+                                  //
+                                  // FirestoreChips(collectionName: 'amenities'),
+                                  // SizedBox(height: 2.h),
+
+                                  // C) Date/Time/Location/Guests
+                                  Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(Icons.calendar_month,
+                                                  size: 4.w),
+                                              SizedBox(width: 1.w),
+                                              Text(
+                                                party.date != null
+                                                    ? "${party.date}"
+                                                    : "5-5-2023",
+                                                style: TextStyle(
+                                                  color: primaryDark,
+                                                  fontSize: 16.sp,
                                                 ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  "11:00 PM",
-                                                  style: TextStyle(
-                                                    color: primaryDark,
-                                                    fontSize: 16.sp,
-                                                  ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                "11:00 PM",
+                                                style: TextStyle(
+                                                  color: primaryDark,
+                                                  fontSize: 16.sp,
                                                 ),
-                                                SizedBox(width: 1.w),
-                                                Icon(Icons.access_time,
-                                                    size: 4.w),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 1.h),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            GestureDetector(
+                                              ),
+                                              SizedBox(width: 1.w),
+                                              Icon(Icons.access_time,
+                                                  size: 4.w),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 1.h),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: GestureDetector(
                                               onTap: () {
                                                 // Request to see location action
                                               },
-                                              child: Row(
+                                              child: Wrap(
                                                 children: [
                                                   Icon(Icons.map, size: 4.w),
                                                   SizedBox(width: 1.w),
                                                   Text(
-                                                    "Request to see location",
+                                                    party.isAddressVisible ||
+                                                            party.requestStatus ==
+                                                                RequestStatus
+                                                                    .accepted
+                                                        ? party.address
+                                                        : "Request to see location",
                                                     style: TextStyle(
                                                       color:
                                                           Colors.grey.shade700,
@@ -390,205 +417,204 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                 ],
                                               ),
                                             ),
-                                            Row(
+                                          ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "${party.currGuests}\\${party.maxGuests}",
+                                                style: TextStyle(
+                                                  color: primaryDark,
+                                                  fontSize: 16.sp,
+                                                ),
+                                              ),
+                                              Icon(Icons.group, size: 4.w),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Divider(
+                              thickness: 1,
+                              color: Colors.grey.shade300,
+                            ),
+                            SizedBox(height: 2.h),
+
+                            // Hosted By
+                            Text(
+                              "Hosted By",
+                              style: TextStyle(
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.bold,
+                                color: primaryDark,
+                              ),
+                            ),
+                            SizedBox(height: 1.h),
+
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      "https://images.unsplash.com/photo-1607746882042-944635dfe10e?fit=crop&w=100&q=80",
+                                    ),
+                                    radius: 30,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              userData?.uid ?? "",
+                                              style: TextStyle(
+                                                fontSize: 15.sp,
+                                                fontWeight: FontWeight.w600,
+                                                color: primaryDark,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Icon(
+                                              Icons.verified,
+                                              color: Colors.green,
+                                              size: 16.sp,
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 0.5.h),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.person_add_alt_1,
+                                              color: Colors.blue,
+                                              size: 16.sp,
+                                            ),
+                                            SizedBox(width: 1.w),
+                                            Text(
+                                              "Follow",
+                                              style: TextStyle(
+                                                color: Colors.blue,
+                                                fontSize: 12.sp,
+                                              ),
+                                            ),
+                                            SizedBox(width: 3.w),
+                                            Icon(
+                                              Icons.call,
+                                              color: Colors.red,
+                                              size: 16.sp,
+                                            ),
+                                            SizedBox(width: 1.w),
+                                            Text(
+                                              userData?.phone ?? "",
+                                              style: TextStyle(
+                                                fontSize: 12.sp,
+                                                color: primaryDark,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 1.h),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Reviews",
+                                              style: TextStyle(
+                                                fontSize: 12.sp,
+                                                color: primaryDark,
+                                              ),
+                                            ),
+                                            SizedBox(width: 1.w),
+                                            Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                              size: 16.sp,
+                                            ),
+                                            Text(
+                                              "4.9",
+                                              style: TextStyle(
+                                                fontSize: 12.sp,
+                                                color: primaryDark,
+                                              ),
+                                            ),
+                                            SizedBox(width: 3.w),
+                                            // Guests profile images
+                                            Stack(
                                               children: [
-                                                SizedBox(width: 1.w),
-                                                Text(
-                                                  "119\\150",
-                                                  style: TextStyle(
-                                                    color: primaryDark,
-                                                    fontSize: 16.sp,
+                                                CircleAvatar(
+                                                  backgroundImage: NetworkImage(
+                                                    "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?fit=crop&w=100&q=80",
+                                                  ),
+                                                  radius: 12,
+                                                ),
+                                                Positioned(
+                                                  left: 18,
+                                                  child: CircleAvatar(
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                      "https://images.unsplash.com/photo-1544723795-3e5b03c240f2?fit=crop&w=100&q=80",
+                                                    ),
+                                                    radius: 12,
                                                   ),
                                                 ),
-                                                Icon(Icons.group, size: 4.w),
+                                                Positioned(
+                                                  left: 36,
+                                                  child: CircleAvatar(
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?fit=crop&w=100&q=80",
+                                                    ),
+                                                    radius: 12,
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  left: 54,
+                                                  child: CircleAvatar(
+                                                    backgroundColor:
+                                                        Colors.grey.shade300,
+                                                    radius: 12,
+                                                    child: Text(
+                                                      "200+",
+                                                      style: TextStyle(
+                                                        fontSize: 8.sp,
+                                                        color: primaryDark,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
                                               ],
                                             ),
                                           ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
+                            ),
 
-                              SizedBox(height: 2.h),
-                              Divider(
-                                thickness: 1,
-                                color: Colors.grey.shade300,
-                              ),
-                              SizedBox(height: 2.h),
-
-                              // Hosted By
-                              Text(
-                                "Hosted By",
-                                style: TextStyle(
-                                  fontSize: 17.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryDark,
-                                ),
-                              ),
-                              SizedBox(height: 1.h),
-
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ],
-                                ),
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?fit=crop&w=100&q=80",
-                                      ),
-                                      radius: 30,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Text(
-                                                "George Papvasiliou",
-                                                style: TextStyle(
-                                                  fontSize: 15.sp,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: primaryDark,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 5),
-                                              Icon(
-                                                Icons.verified,
-                                                color: Colors.green,
-                                                size: 16.sp,
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 0.5.h),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.person_add_alt_1,
-                                                color: Colors.blue,
-                                                size: 16.sp,
-                                              ),
-                                              SizedBox(width: 1.w),
-                                              Text(
-                                                "Follow",
-                                                style: TextStyle(
-                                                  color: Colors.blue,
-                                                  fontSize: 12.sp,
-                                                ),
-                                              ),
-                                              SizedBox(width: 3.w),
-                                              Icon(
-                                                Icons.call,
-                                                color: Colors.red,
-                                                size: 16.sp,
-                                              ),
-                                              SizedBox(width: 1.w),
-                                              Text(
-                                                "+31 6955645845",
-                                                style: TextStyle(
-                                                  fontSize: 12.sp,
-                                                  color: primaryDark,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 1.h),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                "Reviews",
-                                                style: TextStyle(
-                                                  fontSize: 12.sp,
-                                                  color: primaryDark,
-                                                ),
-                                              ),
-                                              SizedBox(width: 1.w),
-                                              Icon(
-                                                Icons.star,
-                                                color: Colors.amber,
-                                                size: 16.sp,
-                                              ),
-                                              Text(
-                                                "4.9",
-                                                style: TextStyle(
-                                                  fontSize: 12.sp,
-                                                  color: primaryDark,
-                                                ),
-                                              ),
-                                              SizedBox(width: 3.w),
-                                              // Guests profile images
-                                              Stack(
-                                                children: [
-                                                  CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?fit=crop&w=100&q=80",
-                                                    ),
-                                                    radius: 12,
-                                                  ),
-                                                  Positioned(
-                                                    left: 18,
-                                                    child: CircleAvatar(
-                                                      backgroundImage:
-                                                          NetworkImage(
-                                                        "https://images.unsplash.com/photo-1544723795-3e5b03c240f2?fit=crop&w=100&q=80",
-                                                      ),
-                                                      radius: 12,
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    left: 36,
-                                                    child: CircleAvatar(
-                                                      backgroundImage:
-                                                          NetworkImage(
-                                                        "https://images.unsplash.com/photo-1527980965255-d3b416303d12?fit=crop&w=100&q=80",
-                                                      ),
-                                                      radius: 12,
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    left: 54,
-                                                    child: CircleAvatar(
-                                                      backgroundColor:
-                                                          Colors.grey.shade300,
-                                                      radius: 12,
-                                                      child: Text(
-                                                        "200+",
-                                                        style: TextStyle(
-                                                          fontSize: 8.sp,
-                                                          color: primaryDark,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              SizedBox(height: 7.h),
-                            ],
-                          ),
+                            SizedBox(height: 7.h),
+                            // More UI...
+                          ],
                         ),
                       ),
                     ),
@@ -598,7 +624,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
             ),
           ),
 
-          // Request Button
+          // 5) "Request" Button
           SafeArea(
             minimum: EdgeInsets.only(
               left: 25.w,
@@ -606,8 +632,6 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
               top: 95.h,
               bottom: -10.h,
             ),
-            left: true,
-            right: true,
             child: GradientButton(
               onPressed: () {
                 // Handle Request
@@ -620,24 +644,6 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                 topLeft: Radius.circular(30),
                 topRight: Radius.circular(30),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureRow(IconData icon, String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 0.8.h),
-      child: Row(
-        children: [
-          Icon(icon, size: 16.sp, color: Colors.black87),
-          SizedBox(width: 2.w),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 16.sp, color: Colors.black87),
             ),
           ),
         ],

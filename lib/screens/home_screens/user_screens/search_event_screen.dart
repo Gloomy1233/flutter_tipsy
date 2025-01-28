@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tipsy/screens/common_screens/party_details_screen.dart';
 import 'package:flutter_tipsy/services/firebase_call_events_service.dart';
 import 'package:flutter_xlider/flutter_xlider.dart';
 import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../../utils/utils.dart';
+import '../../../viewmodels/event_model.dart';
 import '../widgets_home/small_info_card.dart';
 import '../widgets_home/sticky_header_sliver_app_bar.dart';
 
@@ -90,19 +93,72 @@ class _SearchEventScreenState extends State<SearchEventScreen> {
                       CurrentTimeDisplay(),
                       SizedBox(height: 2.h),
                       // Ongoing Parties Title
-                      SectionTitle(title: "Ongoing Parties"),
-                      SizedBox(height: 1.h),
                     ],
                   ),
                 ),
               ),
               // Ongoing Parties Horizontal List
               SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 25.h,
-                  child: OngoingPartiesSection(),
+                child: StreamBuilder<
+                    List<GeoDocumentSnapshot<Map<String, dynamic>>>>(
+                  stream: _userStream, // Your distance-filtered geoQuery stream
+                  builder: (context, geoSnapshot) {
+                    if (geoSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (!geoSnapshot.hasData || geoSnapshot.data!.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "No events found.",
+                          style: TextStyle(fontSize: 16, color: Colors.black),
+                        ),
+                      );
+                    }
+
+                    // Assuming your geoSnapshot.data! returns a collection of GeoDocumentSnapshot
+                    final allGeoDocs = geoSnapshot.data!;
+                    print(geoSnapshot.data?.first.documentSnapshot.data());
+
+                    final ongoingGeoDocs = allGeoDocs.where((geoDoc) {
+                      final data = geoDoc.documentSnapshot.data();
+                      // Ensure data exists and then check the type field
+                      return data != null && data['type'] == 'ongoingEvent';
+                    });
+                    final ongoingEvents = ongoingGeoDocs.map((geoDoc) {
+                      final data = geoDoc.documentSnapshot.data()!;
+
+                      // Replace the following line with actual conversion logic from data to EventModel
+                      return EventModel.fromMap(data);
+                    }).toList();
+                    // 3. Build the UI: Ongoing (horizontal) + Upcoming (vertical list)
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Ongoing
+                        if (ongoingEvents.isNotEmpty) ...[
+                          SectionTitle(title: "Ongoing Parties"),
+                          SizedBox(
+                            height: 25.h,
+                            child: OngoingPartiesSection(events: ongoingEvents),
+                          ),
+                          SizedBox(height: 2.h),
+                        ],
+
+                        // Upcoming
+                      ],
+                    );
+                  },
                 ),
               ),
+              // SliverToBoxAdapter(
+              //   child: SizedBox(
+              //     height: 25.h,
+              //     child: OngoingPartiesSection(),
+              //   ),
+              // ),
               // Spacing after Ongoing Parties
               SliverPadding(
                 padding: EdgeInsets.symmetric(vertical: 2.h),
@@ -252,53 +308,116 @@ class _SearchEventScreenState extends State<SearchEventScreen> {
               ),
               // Upcoming Parties List
               SliverToBoxAdapter(
-                child: StreamBuilder<
-                    List<GeoDocumentSnapshot<Map<String, dynamic>>>>(
-                  stream: _userStream,
-                  builder: (context, geoSnapshot) {
-                    if (geoSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
+                  child: StreamBuilder<
+                      List<GeoDocumentSnapshot<Map<String, dynamic>>>>(
+                stream: _userStream, // Your distance-filtered geoQuery stream
+                builder: (context, geoSnapshot) {
+                  if (geoSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                    if (!geoSnapshot.hasData || geoSnapshot.data!.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "No upcoming parties.",
-                          style: TextStyle(fontSize: 16, color: Colors.black),
-                        ),
-                      );
-                    }
-
-                    List<GeoDocumentSnapshot<Map<String, dynamic>>> geoDocs =
-                        geoSnapshot.data!;
-
-                    // Map the GeoDocuments to your Party data model
-                    List<Party> parties = geoDocs.map((geoDoc) {
-                      Map<String, dynamic> data =
-                          geoDoc.documentSnapshot.data()!;
-                      return Party.fromMap(data);
-                    }).toList();
-                    print("asdasdasdsa" + parties.toString());
-                    return ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: parties.length,
-                      itemBuilder: (context, index) {
-                        final party = parties[index];
-                        return SmallInfoCard(
-                          title: party.title,
-                          subtitle: party.subtitle,
-                          imageUrl: party.imageUrl,
-                          detail1: 'asdasd',
-                          detail2: 'adsasdas',
-                        );
-                      },
+                  if (!geoSnapshot.hasData || geoSnapshot.data!.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        "No events found.",
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
                     );
-                  },
-                ),
-              ),
+                  }
+
+                  // Assuming your geoSnapshot.data! returns a collection of GeoDocumentSnapshot
+                  final allGeoDocs = geoSnapshot.data!;
+                  print(geoSnapshot.data?.first.documentSnapshot.data());
+
+// First filter out documents where type == 'upcomingEvents'
+                  final upcomingGeoDocs = allGeoDocs.where((geoDoc) {
+                    final data = geoDoc.documentSnapshot.data();
+                    // Ensure data exists and then check the type field
+                    return data != null && data['type'] == 'upcomingEvent';
+                  });
+                  print(upcomingGeoDocs);
+
+// Then map the filtered documents to your EventModel
+                  final upcomingEvents = upcomingGeoDocs.map((geoDoc) {
+                    final data = geoDoc.documentSnapshot.data()!;
+
+                    // Replace the following line with actual conversion logic from data to EventModel
+                    return EventModel.fromMap(data);
+                  }).toList();
+                  print(upcomingEvents);
+
+                  final ongoingGeoDocs = allGeoDocs.where((geoDoc) {
+                    final data = geoDoc.documentSnapshot.data();
+                    // Ensure data exists and then check the type field
+                    return data != null && data['type'] == 'ongoingEvent';
+                  });
+                  final ongoingEvents = ongoingGeoDocs.map((geoDoc) {
+                    final data = geoDoc.documentSnapshot.data()!;
+
+                    // Replace the following line with actual conversion logic from data to EventModel
+                    return EventModel.fromMap(data);
+                  }).toList();
+                  // 3. Build the UI: Ongoing (horizontal) + Upcoming (vertical list)
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // // Ongoing
+                      // if (ongoingEvents.isNotEmpty) ...[
+                      //   SectionTitle(title: "Ongoing Parties"),
+                      //   SizedBox(
+                      //     height: 25.h,
+                      //     child: OngoingPartiesSection(events: ongoingEvents),
+                      //   ),
+                      //   SizedBox(height: 2.h),
+                      // ],
+
+                      // Upcoming
+                      SectionTitle(title: "Upcoming Parties"),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: upcomingEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = upcomingEvents[index];
+
+                          final imageUrl =
+                              event.images.isNotEmpty ? event.images.first : '';
+                          final dateString = (event.date == null)
+                              ? "No Date"
+                              : event.date!.toLocal().toString();
+
+                          return InkWell(
+                            onTap: () {
+                              // Navigate to a new screen when tapped
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PartyDetailPage(
+                                    isPreview: false,
+                                    eventModel: event,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: SmallInfoCard(
+                              title: event.title,
+                              subtitle:
+                                  "${event.currGuests} / ${event.maxGuests}",
+                              imageUrl: imageUrl,
+                              detail1: event.isOpenParty == true
+                                  ? "Open"
+                                  : "Private",
+                              detail2: formatDateString1(dateString),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                  ;
+                },
+              )),
             ],
           );
         },
@@ -372,106 +491,80 @@ class SectionTitle extends StatelessWidget {
 
 // Widget for the ongoing parties section
 class OngoingPartiesSection extends StatelessWidget {
-  final List<Map<String, String>> ongoingParties = [
-    {
-      "title": "Ongoing Party 1",
-      "subtitle": "DJ Night at Club XYZ",
-      "imageUrl": "https://file.rendit.io/n/A36fGa3nsC.png",
-    },
-    {
-      "title": "Ongoing Party 2",
-      "subtitle": "Live Music at Rooftop Bar",
-      "imageUrl":
-          "https://balsamiq.com/assets/learn/controls/scrollbars/uses-Long-page.png",
-    },
-    {
-      "title": "Ongoing Party 2",
-      "subtitle": "Live Music at Rooftop Bar",
-      "imageUrl": "https://file.rendit.io/n/3Sz3FTq5fl.png",
-    },
-    {
-      "title": "Ongoing Party 2",
-      "subtitle": "Live Music at Rooftop Bar",
-      "imageUrl":
-          "https://global.discourse-cdn.com/brave/optimized/3X/3/9/39db17a092c56703fb99fb2d8767fc96a461d199_2_689x408.jpeg",
-    },
-    {
-      "title": "Ongoing Party 2",
-      "subtitle": "Live Music at Rooftop Bar",
-      "imageUrl": "https://file.rendit.io/n/3Sz3FTq5fl.png",
-    },
-    // ... other parties
-  ];
+  final List<EventModel> events;
+  const OngoingPartiesSection({Key? key, required this.events})
+      : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 300, // Set the height of the cards
-      child: PageView.builder(
-        controller: PageController(viewportFraction: 0.4), // Snapping effect
-        itemCount: ongoingParties.length,
-        itemBuilder: (context, index) {
-          final party = ongoingParties[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16.0), // Rounded corners
-              child: Stack(
-                children: [
-                  // Background Image
-                  Positioned.fill(
-                    child: Image.network(
-                      party["imageUrl"]!,
-                      fit: BoxFit.cover, // Make the image cover the card
-                    ),
-                  ),
-                  // Overlay with title and subtitle
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.black.withOpacity(0.6),
-                            Colors.black.withOpacity(0.0),
-                          ],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                        ),
+    return PageView.builder(
+      controller: PageController(viewportFraction: 0.4),
+      itemCount: events.length,
+      itemBuilder: (context, index) {
+        final event = events[index];
+        final imageUrl = event.images.isNotEmpty ? event.images.first : '';
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16.0),
+            child: Stack(
+              children: [
+                // Background Image
+                Positioned.fill(
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(color: Colors.grey), // fallback if no image
+                ),
+                // Overlay with gradient
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withOpacity(0.6),
+                          Colors.black.withOpacity(0.0),
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
                       ),
                     ),
                   ),
-                  // Title and Subtitle
-                  Positioned(
-                    bottom: 16.0,
-                    left: 16.0,
-                    right: 16.0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          party["title"]!,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
+                ),
+                // Title and Subtitle display (customize as needed)
+                Positioned(
+                  bottom: 16.0,
+                  left: 16.0,
+                  right: 16.0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event.title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 4.0),
-                        Text(
-                          party["subtitle"]!,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12.sp,
-                          ),
+                      ),
+                      const SizedBox(height: 4.0),
+                      Text(
+                        event.description, // or any subtitle you prefer
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12.sp,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

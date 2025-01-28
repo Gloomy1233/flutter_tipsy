@@ -111,6 +111,7 @@ class _Step2ScreenState extends State<Step2Screen> {
                 }
                 return null;
               },
+              maxLength: 20,
             ),
             const SizedBox(height: 16.0),
             // Email Field
@@ -130,6 +131,7 @@ class _Step2ScreenState extends State<Step2Screen> {
                 }
                 return null;
               },
+              maxLength: 20,
             ),
             const SizedBox(height: 16.0),
             // Password Field
@@ -157,6 +159,7 @@ class _Step2ScreenState extends State<Step2Screen> {
                   });
                 },
               ),
+              maxLength: 25,
             ),
             const SizedBox(height: 16.0),
             // Repeat Password Field
@@ -173,6 +176,7 @@ class _Step2ScreenState extends State<Step2Screen> {
                 }
                 return null;
               },
+              maxLength: 25,
               suffixIcon: IconButton(
                 icon: Icon(
                   _repeatPasswordVisible

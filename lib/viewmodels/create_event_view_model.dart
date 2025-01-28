@@ -1,101 +1,125 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+
+import 'event_model.dart';
 
 class CreateEventViewModel extends ChangeNotifier {
   // Event Fields
-  String title = '';
-  String type = 'upcomingEvent'; // Default type
-  String address = '';
-  String description = '';
-  int numPeople = 50; // Default value
-  int attendingPeople = 0; // Default value
-  bool isOpen = false;
-  bool isAddressVisible = false; // Default value
-  bool isPaidEvent = false; // Default value
-  String host = '';
-  String geohash = '';
-  GeoPoint? geopoint;
-  DateTime? date;
-  int? timestamp;
 
-  // Photos
-  List<File> photoFiles = []; // Local photo files
-  List<String> photoUrls = []; // Firebase Storage URLs of uploaded photos
+  /// This holds all data about our party
+  EventModel _partyData = EventModel();
 
-  // Setters
-  void setTitle(String value) {
-    title = value;
+  // 2) Create a getter (no parentheses) to expose _partyData:
+  EventModel get partyData => _partyData;
+
+  /// Example of setting fields
+  set uid(String value) {
+    _partyData.uid = value;
     notifyListeners();
   }
 
-  void setType(String value) {
-    type = value;
+  set title(String value) {
+    _partyData.title = value;
     notifyListeners();
   }
 
-  void setAddress(String value) {
-    address = value;
+  set description(String value) {
+    _partyData.description = value;
     notifyListeners();
   }
 
-  void setDescription(String value) {
-    description = value;
+  set geohash(String value) {
+    _partyData.geohash = value;
     notifyListeners();
   }
 
-  void setNumPeople(int value) {
-    numPeople = value;
+  set geoPoint(GeoPoint? value) {
+    _partyData.geoPoint = value;
     notifyListeners();
   }
 
-  void setAttendingPeople(int value) {
-    attendingPeople = value;
+  set address(String value) {
+    _partyData.address = value;
     notifyListeners();
   }
 
-  void setHost(String value) {
-    host = value;
+  set location(Map<String, dynamic> value) {
+    _partyData.location = value;
     notifyListeners();
   }
 
-  void setGeohash(String value) {
-    geohash = value;
+  set isAddressVisible(bool value) {
+    _partyData.isAddressVisible = value;
     notifyListeners();
   }
 
-  void setGeopoint(double latitude, double longitude) {
-    geopoint = GeoPoint(latitude, longitude);
+  set isOpenParty(bool value) {
+    _partyData.isOpenParty = value;
     notifyListeners();
   }
 
-  void setDate(DateTime eventDate) {
-    date = eventDate;
-    timestamp = eventDate.millisecondsSinceEpoch;
+  set maxGuests(int value) {
+    _partyData.maxGuests = value;
     notifyListeners();
   }
 
-  void addPhoto(File photo) {
-    photoFiles.add(photo);
+  set currGuests(int value) {
+    _partyData.currGuests = value;
     notifyListeners();
   }
 
-  void removePhoto(int index) {
-    if (index >= 0 && index < photoFiles.length) {
-      photoFiles.removeAt(index);
+  set date(DateTime? value) {
+    _partyData.date = value;
+    notifyListeners();
+  }
+
+  set isPaidEvent(bool value) {
+    _partyData.isPaidEvent = value;
+    notifyListeners();
+  }
+
+  /// For lists, you can directly manipulate them or set them at once
+  set music(List<String> value) {
+    _partyData.music = value;
+    notifyListeners();
+  }
+
+  set amenities(List<String> value) {
+    _partyData.amenities = value;
+    notifyListeners();
+  }
+
+  set foodsDrinks(List<String> value) {
+    _partyData.foodsDrinks = value;
+    notifyListeners();
+  }
+
+  set images(List<String> value) {
+    _partyData.images = value;
+    notifyListeners();
+  }
+
+  /// Example method: Adds a single image URL to the existing list
+  void addImage(String url) {
+    _partyData.images.add(url);
+    notifyListeners();
+  }
+
+  /// Finally: a method to save to Firestore
+  Future<void> savePartyToFirestore() async {
+    try {
+      // Example: writing to a "parties" collection
+      await FirebaseFirestore.instance.collection('events').add(
+            _partyData.toMap(),
+          );
+      // Clear or keep data after saving, your choice
+      _partyData = EventModel();
       notifyListeners();
+    } catch (e) {
+      // Handle error
+      debugPrint("Error saving to Firestore: $e");
+      rethrow;
     }
-  }
-  void setIsOpen(bool value) {
-    isOpen = value;
-    notifyListeners();
-  }
-
-  void setIsAddressVisible(bool value) {
-    isAddressVisible = value;
-    notifyListeners();
   }
 
   void setIsPaidEvent(bool value) {
@@ -103,98 +127,39 @@ class CreateEventViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Validation
+  // Updated isNextEnabled method
   bool isNextEnabled(int currentPage) {
     switch (currentPage) {
       case 0:
-        return true;
+        // Title must be at least 5 characters and description at least 50 characters
+        // If it's not an open party, maxGuests must be at least 10
+        return partyData.title.length >= 5 &&
+            partyData.description.length >= 100 &&
+            (partyData.date != null);
       case 1:
-        return true;
-      // return fullName.isNotEmpty &&
-      //     email.isNotEmpty &&
-      //     isValidEmail(email) &&
-      //     password == repeatPassword &&
-      //     password.length >= 6 &&
-      //     phone.isNotEmpty;
+        // Location must be set, and isAddressVisible must be true or false
+        return partyData.location!.isNotEmpty &&
+            (partyData.isAddressVisible == true ||
+                partyData.isAddressVisible == false);
       case 2:
         return true;
       case 3:
+        // Optional validation, so it always passes
+        return partyData.images.isNotEmpty;
+      case 4:
+        // At least one photo is required
         return true;
       default:
         return false;
     }
   }
 
-  // Firebase Methods
-  Future<void> saveEventToFirebase() async {
-    try {
-      // Upload all photos to Firebase Storage and get their URLs
-      photoUrls = await _uploadEventPhotos();
-
-      // Save event data to Firestore
-      await saveEventDataToFirestore();
-
-      print("Event created successfully");
-    } catch (e) {
-      print("Error creating event: $e");
-      throw e;
-    }
-  }
-
-  // Helper to upload all photos to Firebase Storage
-  Future<List<String>> _uploadEventPhotos() async {
-    List<String> uploadedPhotoUrls = [];
-    try {
-      for (var photo in photoFiles) {
-        String uniqueId = DateTime.now().millisecondsSinceEpoch.toString();
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('event_photos')
-            .child('$uniqueId.jpg');
-
-        // Upload the photo file
-        await storageRef.putFile(photo);
-
-        // Get the photo's download URL
-        String downloadUrl = await storageRef.getDownloadURL();
-        uploadedPhotoUrls.add(downloadUrl);
-      }
-    } catch (e) {
-      print("Error uploading photos: $e");
-      rethrow;
-    }
-    return uploadedPhotoUrls;
-  }
-
-  // Helper to save event data to Firestore
-  Future<void> saveEventDataToFirestore() async {
-    final firestore = FirebaseFirestore.instance;
-
-    Map<String, dynamic> eventData = {
-      'title': title,
-      'type': type,
-      'address': address,
-      'description': description,
-      'numPeople': numPeople,
-      'attendingPeople': attendingPeople,
-      'host': host,
-      'geohash': geohash,
-      'geopoint': geopoint,
-      'photos': photoUrls, // List of photo URLs
-      'date': date?.toIso8601String(),
-      'timestamp': timestamp,
-    };
-
-    await firestore.collection('events').add(eventData);
-  }
-
   // Validation Method
   bool isFormValid() {
-    return title.isNotEmpty &&
-        address.isNotEmpty &&
-        description.isNotEmpty &&
-        date != null &&
-        geopoint != null;
+    return partyData.title.isNotEmpty &&
+        partyData.description.isNotEmpty &&
+        partyData.date != null &&
+        partyData.geoPoint != null;
   }
 
   void notify() {

@@ -8,6 +8,7 @@ import 'package:flutter_tipsy/screens/register_screens/register_screen.dart';
 import 'package:flutter_tipsy/utils/ThemePreferences.dart';
 import 'package:flutter_tipsy/utils/constants.dart';
 import 'package:flutter_tipsy/viewmodels/ThemeConstroler.dart';
+import 'package:flutter_tipsy/viewmodels/create_event_view_model.dart';
 import 'package:flutter_tipsy/viewmodels/user_view_model.dart';
 import 'package:nominatim_flutter/nominatim_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -32,7 +33,7 @@ void main() async {
     providers: [
       ChangeNotifierProvider(create: (_) => UserViewModel()),
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
-
+      ChangeNotifierProvider(create: (_) => CreateEventViewModel()),
       // Μπορείτε να προσθέσετε και άλλους providers εδώ
     ],
     child: MyApp(),
@@ -73,7 +74,7 @@ class _MyAppState extends State<MyApp> {
             theme: AppTheme.light, // Use light theme
             darkTheme: AppTheme.dark, // Use dark theme
             themeMode: _themeMode,
-            initialRoute: '/test',
+            initialRoute: '/login',
             routes: {
               '/login': (context) => const LoginScreen(),
               '/signup': (context) => const RegisterScreen(),

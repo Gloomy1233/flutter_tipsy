@@ -19,8 +19,17 @@ const Color gradientOrange = Color(0xFFF5C8A3);
 const Color primaryPink = Color(0xFFD7BBF5);
 const Color shapeColor2 = Color(0xFFA3DFF5);
 const Color shapeColor3 = Color(0xFFF5C8A3);
+
+const Color primaryPinkLight = Color(0x90D7BBF5);
+const Color shapeColor3Light = Color(0x90F5C8A3);
+
 const LinearGradient gradient = LinearGradient(
   colors: [primaryPink, shapeColor3],
+  begin: Alignment.centerLeft,
+  end: Alignment.centerRight,
+);
+const LinearGradient gradientLight = LinearGradient(
+  colors: [primaryPinkLight, shapeColor3Light],
   begin: Alignment.centerLeft,
   end: Alignment.centerRight,
 );
@@ -53,7 +62,7 @@ var iconsMainScreenHost = <Widget>[
 const screensMainScreenHost = [
   Center(child: Text("Blocked Users", style: TextStyle(fontSize: 24))),
   Center(child: Text("Statistics", style: TextStyle(fontSize: 24))),
-  const CreateEventScreen(),
+  CreateEventScreen(),
   Center(child: Text("Organizer", style: TextStyle(fontSize: 24))),
   Center(child: Text("Swap User", style: TextStyle(fontSize: 24))),
 ];

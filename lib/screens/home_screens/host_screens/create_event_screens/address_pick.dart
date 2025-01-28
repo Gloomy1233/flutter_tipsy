@@ -1542,6 +1542,7 @@ class _AddressPickState extends State<AddressPick> {
                       labelText: "Address",
                       hintText: "Φιλωνος",
                       onChanged: (value) => _onAddressChanged(),
+                      maxLength: 25,
                     ),
                   ),
                   SizedBox(width: 5),
@@ -1552,6 +1553,7 @@ class _AddressPickState extends State<AddressPick> {
                       labelText: "Number",
                       hintText: "18",
                       keyboardType: TextInputType.number,
+                      maxLength: 5,
                     ),
                   )
                 ],
@@ -1629,6 +1631,7 @@ class _AddressPickState extends State<AddressPick> {
                   onChanged: (value) {
                     // Handle city input change
                   },
+                  maxLength: 15,
                 ),
               ),
               SizedBox(height: 5),
@@ -1642,6 +1645,7 @@ class _AddressPickState extends State<AddressPick> {
                   onChanged: (value) {
                     // Handle state input change
                   },
+                  maxLength: 20,
                 ),
               ),
             ],
@@ -1657,6 +1661,7 @@ class _AddressPickState extends State<AddressPick> {
             onChanged: (value) {
               // Handle postal code input change
             },
+            maxLength: 7,
           ),
           SizedBox(height: 5),
 
@@ -1667,6 +1672,7 @@ class _AddressPickState extends State<AddressPick> {
             hintText: "Greece",
             suffixIcon: Icon(Icons.arrow_drop_down, color: primaryDark),
             onChanged: (value) {},
+            maxLength: 12,
           ),
 
           SizedBox(height: 5),

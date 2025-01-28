@@ -69,12 +69,14 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
             return Column(
               children: [
                 // Display Search Resultsa
+                SizedBox(height: 7.h),
+
                 Text(
                   "Music",
                   style: TextStyle(
                     color: primaryDark,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w200,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -91,6 +93,7 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                     child: Column(
                       children: [
                         SearchWidgetModular(
+                          hintText: "Search for Music Genres...",
                           iconResolver: (String iconName) {
                             switch (iconName) {
                               case 'music_note':
@@ -127,8 +130,8 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                   "Foods & Drinks",
                   style: TextStyle(
                     color: primaryDark,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w200,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -143,6 +146,7 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                     child: Column(
                       children: [
                         SearchWidgetModular(
+                          hintText: "Search for Foods & Drinks...",
                           iconResolver: (String iconName) {
                             switch (iconName) {
                               case 'local_bar':
@@ -182,8 +186,8 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                   "Amenities",
                   style: TextStyle(
                     color: primaryDark,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w200,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -200,6 +204,7 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                     child: Column(
                       children: [
                         SearchWidgetModular(
+                          hintText: "Search for Amenities...",
                           iconResolver: (String iconName) {
                             switch (iconName) {
                               case 'pool':
@@ -318,108 +323,108 @@ class EventStep3ScreenState extends State<EventStep3Screen> {
                   ),
                 ),
                 SizedBox(height: 4.h),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            "Want address to be visible",
-                            style: TextStyle(
-                              color: primaryDark,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w200,
-                            ),
-                          ),
-                          SizedBox(width: 5),
-                          Icon(Icons.help_outline,
-                              color: primaryPink, size: 14.sp),
-                          Spacer(),
-                          Switch(
-                            value: isAddressVisible,
-                            onChanged: (value) {
-                              setState(() {
-                                isAddressVisible = value;
-                              });
-                            },
-                            activeColor: primaryOrange,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: gradient,
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              offset: Offset(0, 10),
-                              blurRadius: 6,
-                            ),
-                          ],
-                          border: Border.all(color: primaryDark, width: 1),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 4.0),
-                                    child: Text(
-                                      "Date",
-                                      style: TextStyle(
-                                        color: primaryDark,
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w100,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.date_range_sharp,
-                                    color: primaryDark,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.only(left: 7.w),
-                                child: TextFormField(
-                                  controller: dateOfBirthController,
-                                  readOnly: true,
-                                  textAlign: TextAlign.left,
-                                  onTap: () async {
-                                    // Show date picker (your existing code)
-                                  },
-                                  style: TextStyle(
-                                    color: primaryDark,
-                                  ),
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    contentPadding:
-                                        EdgeInsets.symmetric(horizontal: 8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.keyboard_arrow_right,
-                              color: primaryDark,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // Padding(
+                //   padding: EdgeInsets.all(16.0),
+                //   child: Column(
+                //     children: [
+                //       Row(
+                //         children: [
+                //           Text(
+                //             "Want address to be visible",
+                //             style: TextStyle(
+                //               color: primaryDark,
+                //               fontSize: 14.sp,
+                //               fontWeight: FontWeight.w200,
+                //             ),
+                //           ),
+                //           SizedBox(width: 5),
+                //           Icon(Icons.help_outline,
+                //               color: primaryPink, size: 14.sp),
+                //           Spacer(),
+                //           Switch(
+                //             value: isAddressVisible,
+                //             onChanged: (value) {
+                //               setState(() {
+                //                 isAddressVisible = value;
+                //               });
+                //             },
+                //             activeColor: primaryOrange,
+                //           ),
+                //         ],
+                //       ),
+                //       SizedBox(height: 16),
+                //       Container(
+                //         decoration: BoxDecoration(
+                //           gradient: gradient,
+                //           borderRadius: BorderRadius.all(Radius.circular(10)),
+                //           boxShadow: const [
+                //             BoxShadow(
+                //               color: Colors.black12,
+                //               offset: Offset(0, 10),
+                //               blurRadius: 6,
+                //             ),
+                //           ],
+                //           border: Border.all(color: primaryDark, width: 1),
+                //         ),
+                //         child: Row(
+                //           mainAxisAlignment: MainAxisAlignment.start,
+                //           mainAxisSize: MainAxisSize.min,
+                //           children: [
+                //             Padding(
+                //               padding: const EdgeInsets.all(8.0),
+                //               child: Column(
+                //                 mainAxisAlignment: MainAxisAlignment.start,
+                //                 mainAxisSize: MainAxisSize.min,
+                //                 children: [
+                //                   Padding(
+                //                     padding: const EdgeInsets.only(bottom: 4.0),
+                //                     child: Text(
+                //                       "Date",
+                //                       style: TextStyle(
+                //                         color: primaryDark,
+                //                         fontSize: 12.sp,
+                //                         fontWeight: FontWeight.w100,
+                //                       ),
+                //                     ),
+                //                   ),
+                //                   const Icon(
+                //                     Icons.date_range_sharp,
+                //                     color: primaryDark,
+                //                   ),
+                //                 ],
+                //               ),
+                //             ),
+                //             Expanded(
+                //               child: Padding(
+                //                 padding: EdgeInsets.only(left: 7.w),
+                //                 child: TextFormField(
+                //                   controller: dateOfBirthController,
+                //                   readOnly: true,
+                //                   textAlign: TextAlign.left,
+                //                   onTap: () async {
+                //                     // Show date picker (your existing code)
+                //                   },
+                //                   style: TextStyle(
+                //                     color: primaryDark,
+                //                   ),
+                //                   decoration: const InputDecoration(
+                //                     border: InputBorder.none,
+                //                     contentPadding:
+                //                         EdgeInsets.symmetric(horizontal: 8),
+                //                   ),
+                //                 ),
+                //               ),
+                //             ),
+                //             const Icon(
+                //               Icons.keyboard_arrow_right,
+                //               color: primaryDark,
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
               ],
             );
           },

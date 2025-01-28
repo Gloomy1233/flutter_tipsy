@@ -2,7 +2,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/address_pick.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -12,7 +11,10 @@ import '../../../../utils/sdp.dart';
 import '../../../../viewmodels/create_event_view_model.dart';
 import '../../../../widgets/background_widget.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../common_screens/party_details_screen.dart';
+import '../../widgets_home/back_to_home_screen_button.dart';
 import 'event_step_1_screen.dart';
+import 'event_step_2_screen.dart';
 import 'event_step_3_screen.dart';
 import 'event_step_4_screen.dart';
 
@@ -25,7 +27,7 @@ class CreateEventScreen extends StatefulWidget {
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
   final PageController _pageController = PageController();
-  final int _totalPages = 7;
+  final int _totalPages = 5;
   int _currentPage = 0;
   bool _isLoading = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -92,7 +94,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           height: 50,
           child: BottomAppBar(
             color: primaryDark,
-            shape: const DoubleCircularNotchedButton(),
+            shape: _currentPage != 1
+                ? const DoubleCircularNotchedButton()
+                : RectangleNotchedShape(),
             notchMargin: 5.0,
             clipBehavior: Clip.antiAlias,
             child: Row(
@@ -100,7 +104,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               children: [
                 SmoothPageIndicator(
                   controller: _pageController,
-                  count: _createEventScreenViewModel.isPaidEvent
+                  count: false //_createEventScreenViewModel.isPaidEvent
                       ? _totalPages + 1
                       : _totalPages,
                   effect: ExpandingDotsEffect(
@@ -133,6 +137,17 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 },
               ),
               if (_isLoading) const LoadingIndicator(),
+              Positioned(
+                top: 20,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: BackToHostHomeScreenButton(
+                    initialIndex: 3, // Jump to 4th tab
+                    isHostInitially: true, // Ensure Host mode
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -145,17 +160,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       case 0:
         return EventStep1Screen();
       case 1:
-        return AddressPick();
+        return EventStep2Screen();
       case 2:
         return EventStep3Screen();
       case 3:
         return EventStep4Screen();
       case 4:
-        return FoodDrinkOptionsScreen();
-      case 5:
-        return ThemeSelectionScreen();
-      case 6:
-        return RSVPOptionsScreen();
+        return PartyDetailPage(
+          isPreview: true,
+        );
       default:
         return Container();
     }
@@ -179,7 +192,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         _isLoading = true;
       });
       try {
-        await _createEventScreenViewModel.saveEventDataToFirestore();
+        await _createEventScreenViewModel.savePartyToFirestore();
         setState(() {
           _isLoading = false;
         });
@@ -194,6 +207,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         });
       }
     }
+  }
+}
+
+class RectangleNotchedShape extends NotchedShape {
+  const RectangleNotchedShape();
+
+  @override
+  Path getOuterPath(Rect host, Rect? guest) {
+    // Simply return the rectangle of the host, ignoring the guest rectangle
+    return Path()..addRect(host);
   }
 }
 
