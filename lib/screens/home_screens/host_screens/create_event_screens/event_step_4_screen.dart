@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../../viewmodels/create_event_view_model.dart';
+import '../../../../viewmodels/current_user.dart';
 import '../../../../viewmodels/user_view_model.dart';
 
 class EventStep4Screen extends StatefulWidget {
@@ -36,6 +37,14 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
     super.initState();
     _isMounted = true;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = CurrentUser().user;
+      if (currentUser != null) {
+        final partyProvider =
+            Provider.of<CreateEventViewModel>(context, listen: false);
+        partyProvider.acceptedGuests = List<String>.filled(1, currentUser.uid);
+      }
+    });
     _loadUploadedImages();
   }
 
@@ -78,6 +87,13 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
     try {
       final List<XFile> selectedImages = await _picker.pickMultiImage();
       setState(() {
+        final currentUser = CurrentUser().user;
+        if (currentUser != null) {
+          List<String> list = [];
+          list.add(currentUser.uid);
+          partyProvider.acceptedGuests = list;
+        }
+
         _images = selectedImages;
         partyProvider.images = _downloadedImageUrls;
         _uploadingFlags = List.generate(selectedImages.length, (_) => true);

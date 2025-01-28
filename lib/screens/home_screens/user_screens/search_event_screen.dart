@@ -7,6 +7,7 @@ import 'package:geoflutterfire_plus/geoflutterfire_plus.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../utils/utils.dart';
+import '../../../viewmodels/current_user.dart';
 import '../../../viewmodels/event_model.dart';
 import '../widgets_home/small_info_card.dart';
 import '../widgets_home/sticky_header_sliver_app_bar.dart';
@@ -363,14 +364,14 @@ class _SearchEventScreenState extends State<SearchEventScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // // Ongoing
-                      // if (ongoingEvents.isNotEmpty) ...[
-                      //   SectionTitle(title: "Ongoing Parties"),
-                      //   SizedBox(
-                      //     height: 25.h,
-                      //     child: OngoingPartiesSection(events: ongoingEvents),
-                      //   ),
-                      //   SizedBox(height: 2.h),
-                      // ],
+                      //  if (ongoingEvents.isNotEmpty) ...[
+                      //    SectionTitle(title: "Ongoing Parties"),
+                      //    SizedBox(
+                      //      height: 25.h,
+                      //      child: OngoingPartiesSection(events: ongoingEvents),
+                      //    ),
+                      //    SizedBox(height: 2.h),
+                      //  ],
 
                       // Upcoming
                       SectionTitle(title: "Upcoming Parties"),
@@ -380,7 +381,9 @@ class _SearchEventScreenState extends State<SearchEventScreen> {
                         itemCount: upcomingEvents.length,
                         itemBuilder: (context, index) {
                           final event = upcomingEvents[index];
-
+                          if (event.uid == CurrentUser().user!.uid) {
+                            return null;
+                          }
                           final imageUrl =
                               event.images.isNotEmpty ? event.images.first : '';
                           final dateString = (event.date == null)
@@ -403,7 +406,7 @@ class _SearchEventScreenState extends State<SearchEventScreen> {
                             child: SmallInfoCard(
                               title: event.title,
                               subtitle:
-                                  "${event.currGuests} / ${event.maxGuests}",
+                                  "${event.acceptedGuests.length} / ${event.maxGuests}",
                               imageUrl: imageUrl,
                               detail1: event.isOpenParty == true
                                   ? "Open"
@@ -413,6 +416,7 @@ class _SearchEventScreenState extends State<SearchEventScreen> {
                           );
                         },
                       ),
+                      SizedBox(height: 10.h),
                     ],
                   );
                   ;
@@ -560,6 +564,20 @@ class OngoingPartiesSection extends StatelessWidget {
                     ],
                   ),
                 ),
+                Positioned.fill(
+                    child: GestureDetector(
+                  onTap: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PartyDetailPage(
+                          isPreview: false,
+                          eventModel: event,
+                        ),
+                      ),
+                    )
+                  },
+                )),
               ],
             ),
           ),

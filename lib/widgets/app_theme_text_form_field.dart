@@ -5,19 +5,20 @@ import '../utils/constants.dart'; // Ensure this imports your constants like gra
 
 class AppThemeTextFormField extends StatelessWidget {
   final String labelText;
-  final String? hintText; // Hint text
+  final String? hintText;
   final TextEditingController? controller;
   final bool obscureText;
   final Function(String)? onChanged;
   final String? Function(String?)? validator;
   final Widget? suffixIcon;
   final bool readOnly;
+  final bool isDisabled; // New property for explicitly disabling the field
   final TextInputType keyboardType;
   final int? maxLines;
-  final int? maxLength; // Add maxLength for the character counter
-  final String? errorText; // Add errorText for custom error messages
-  final FocusNode? focusNode; // FocusNode for managing focus behavior
-  final VoidCallback? onTap; // onTap for custom behavior
+  final int? maxLength;
+  final String? errorText;
+  final FocusNode? focusNode;
+  final VoidCallback? onTap;
 
   const AppThemeTextFormField({
     Key? key,
@@ -29,9 +30,10 @@ class AppThemeTextFormField extends StatelessWidget {
     this.validator,
     this.suffixIcon,
     this.readOnly = false,
+    this.isDisabled = false, // Default to false
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
-    this.maxLength, // Pass maxLength as a constructor argument
+    this.maxLength,
     this.errorText,
     this.focusNode,
     this.onTap,
@@ -46,39 +48,45 @@ class AppThemeTextFormField extends StatelessWidget {
         Text(
           labelText,
           style: TextStyle(
-            color: primaryDarkLighter,
+            color: isDisabled
+                ? Colors.grey
+                : primaryDarkLighter, // Dim the label when disabled
             fontSize: 18.sp,
             fontWeight: FontWeight.w300,
           ),
         ),
         const SizedBox(height: 8.0),
 
-        // TextFormField with counter and error handling
+        // TextFormField
         TextFormField(
           controller: controller,
           focusNode: focusNode,
           onChanged: (value) {
-            // Trigger external onChanged if provided
-            if (onChanged != null) {
-              onChanged!(value);
-            }
+            if (onChanged != null) onChanged!(value);
           },
-
           validator: validator,
           obscureText: obscureText,
-          readOnly: readOnly,
+          readOnly: readOnly || isDisabled, // Treat `isDisabled` as readOnly
           keyboardType: keyboardType,
           maxLines: maxLines,
-          maxLength: maxLength, // Enforce maxLength here
-          onTap: onTap,
+          maxLength: maxLength,
+          onTap: isDisabled ? null : onTap, // Disable onTap if `isDisabled`
           decoration: InputDecoration(
             filled: true,
-            fillColor: primaryDarkLighter,
-            enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: primaryDarkLighter, width: 3.0),
+            fillColor: isDisabled
+                ? Colors.grey[300]
+                : primaryDarkLighter, // Change background color when disabled
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: isDisabled ? Colors.grey : primaryDarkLighter,
+                width: 2.0,
+              ),
             ),
-            focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: primaryOrange, width: 3.0),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: isDisabled ? Colors.grey : primaryOrange,
+                width: 3.0,
+              ),
             ),
             errorBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.red),
@@ -86,35 +94,34 @@ class AppThemeTextFormField extends StatelessWidget {
             focusedErrorBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.red, width: 2.0),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey,
+                width: 2.0,
+              ),
+            ),
             hintText: hintText,
-            focusColor: primaryDarkLighter,
-            hoverColor: primaryDarkLighter,
             hintStyle: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w500,
-              foreground: Paint()
-                ..shader = gradientLight.createShader(
-                  const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                ),
+              color: isDisabled ? Colors.grey : primaryDark,
             ),
-            errorText: errorText, // Display custom error messages
+            errorText: errorText,
             counterText: maxLength != null
                 ? '${maxLength! - (controller?.text.length ?? 0)} characters remaining'
-                : null, // Show remaining characters if maxLength is defined
+                : null,
             counterStyle: TextStyle(
               fontSize: 10.sp,
-              color: primaryDark,
+              color: isDisabled ? Colors.grey : primaryDark,
             ),
             suffixIcon: suffixIcon,
           ),
-
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.normal,
-            foreground: Paint()
-              ..shader = gradient.createShader(
-                const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-              ),
+            color: isDisabled
+                ? Colors.grey
+                : Colors.black, // Change text color when disabled
           ),
         ),
       ],

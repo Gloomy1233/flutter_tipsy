@@ -10,6 +10,7 @@ import 'package:sizer/sizer.dart';
 import '../../utils/constants.dart';
 import '../../utils/enums.dart';
 import '../../viewmodels/create_event_view_model.dart';
+import '../../viewmodels/current_user.dart';
 import '../../widgets/background_widget.dart';
 import '../../widgets/firestore_chips.dart';
 import '../../widgets/full_screen_image.dart';
@@ -115,6 +116,21 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
     );
   }
 
+  late GuestStatus status;
+  GuestStatus getGuestStatus(EventModel party) {
+    final String? currentUserId = CurrentUser().user?.uid;
+
+    if (party.acceptedGuests.contains(currentUserId)) {
+      return GuestStatus.accepted;
+    } else if (party.pendingGuests.contains(currentUserId)) {
+      return GuestStatus.pending;
+    } else if (party.rejectedGuests.contains(currentUserId)) {
+      return GuestStatus.rejected;
+    } else {
+      return GuestStatus.none;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final EventModel party;
@@ -131,7 +147,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
     final String partyTitle = party.title;
     // ... etc.
     print(party.title);
-
+    status = getGuestStatus(party);
     return Scaffold(
       body: Stack(
         children: [
@@ -422,7 +438,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
-                                                "${party.currGuests}\\${party.maxGuests}",
+                                                "${party.acceptedGuests.length}\\${party.maxGuests}",
                                                 style: TextStyle(
                                                   color: primaryDark,
                                                   fontSize: 16.sp,
@@ -486,7 +502,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                         Row(
                                           children: [
                                             Text(
-                                              userData?.uid ?? "",
+                                              userData?.fullName ?? "",
                                               style: TextStyle(
                                                 fontSize: 15.sp,
                                                 fontWeight: FontWeight.w600,
@@ -626,26 +642,89 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
 
           // 5) "Request" Button
           SafeArea(
-            minimum: EdgeInsets.only(
-              left: 25.w,
-              right: 25.w,
-              top: 95.h,
-              bottom: -10.h,
-            ),
-            child: GradientButton(
-              onPressed: () {
-                // Handle Request
-              },
-              textColor: primaryDark,
-              height: 5.h,
-              text: "Request",
-              padding: const EdgeInsets.all(0),
-              radius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
+              minimum: EdgeInsets.only(
+                left: 25.w,
+                right: 25.w,
+                top: 95.h,
+                bottom: -10.h,
               ),
-            ),
-          ),
+              child: GradientButton(
+                onPressed: () async {
+                  if (status == GuestStatus.none) {
+                    try {
+                      final String? currentUserId = CurrentUser().user?.uid;
+
+                      if (currentUserId != null) {
+                        // Change button appearance immediately
+                        setState(() {
+                          status = GuestStatus.pending;
+                        });
+
+                        await FirebaseFirestore.instance
+                            .collection('events')
+                            .doc(party.id)
+                            .update({
+                          'pendingGuests':
+                              FieldValue.arrayUnion([currentUserId])
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Request sent successfully!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('User not logged in!'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Reset button if request fails
+                      setState(() {
+                        status = GuestStatus.none;
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to send request: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                textColor: status == GuestStatus.accepted
+                    ? primaryDark
+                    : status == GuestStatus.pending
+                        ? Colors.white
+                        : status == GuestStatus.rejected
+                            ? Colors.white
+                            : primaryDark,
+                gradientBg: status == GuestStatus.accepted
+                    ? gradient
+                    : status == GuestStatus.pending
+                        ? gradient1
+                        : status == GuestStatus.rejected
+                            ? gradientLight
+                            : gradient,
+                height: 5.h,
+                text: status == GuestStatus.accepted
+                    ? "Accepted"
+                    : status == GuestStatus.pending
+                        ? "Pending"
+                        : status == GuestStatus.rejected
+                            ? "Rejected"
+                            : "Request",
+                padding: const EdgeInsets.all(0),
+                radius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+              )),
         ],
       ),
     );

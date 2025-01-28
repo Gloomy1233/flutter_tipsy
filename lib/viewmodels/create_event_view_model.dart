@@ -53,6 +53,8 @@ class CreateEventViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get isOpenParty => _partyData.isOpenParty;
+
   set isOpenParty(bool value) {
     _partyData.isOpenParty = value;
     notifyListeners();
@@ -99,6 +101,21 @@ class CreateEventViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  set acceptedGuests(List<String> value) {
+    _partyData.acceptedGuests = value;
+    notifyListeners();
+  }
+
+  set rejectedGuests(List<String> value) {
+    _partyData.rejectedGuests = value;
+    notifyListeners();
+  }
+
+  set pendingGuests(List<String> value) {
+    _partyData.pendingGuests = value;
+    notifyListeners();
+  }
+
   /// Example method: Adds a single image URL to the existing list
   void addImage(String url) {
     _partyData.images.add(url);
@@ -108,15 +125,20 @@ class CreateEventViewModel extends ChangeNotifier {
   /// Finally: a method to save to Firestore
   Future<void> savePartyToFirestore() async {
     try {
-      // Example: writing to a "parties" collection
-      await FirebaseFirestore.instance.collection('events').add(
-            _partyData.toMap(),
-          );
-      // Clear or keep data after saving, your choice
+      final eventRef = FirebaseFirestore.instance
+          .collection('events')
+          .doc(); // Generate a new doc ID
+      _partyData.id =
+          eventRef.id; // Store Firestore-generated ID inside the event
+
+      await eventRef.set(_partyData.toMap()); // Save event to Firestore
+
+      print("Event saved successfully with ID: ${_partyData.id}");
+
+      // Clear or reset data after saving
       _partyData = EventModel();
       notifyListeners();
     } catch (e) {
-      // Handle error
       debugPrint("Error saving to Firestore: $e");
       rethrow;
     }

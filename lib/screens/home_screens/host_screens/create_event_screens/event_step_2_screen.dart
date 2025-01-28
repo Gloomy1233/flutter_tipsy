@@ -102,7 +102,7 @@ class EventStep2ScreenState extends State<EventStep2Screen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            width: 70.w,
+                            width: 60.w,
                             child: Text(
                               selectedPlace?.formattedAddress ??
                                   'No place selected',
@@ -121,7 +121,6 @@ class EventStep2ScreenState extends State<EventStep2Screen> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 2.h),
                           Flex(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             direction: Axis.vertical,

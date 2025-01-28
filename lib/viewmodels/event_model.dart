@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/enums.dart';
 
 class EventModel {
+  String? id;
   String uid = '';
   String title = '';
   String description = '';
@@ -24,10 +25,10 @@ class EventModel {
   List<String> images; // e.g. list of image URLs
   RequestStatus requestStatus;
   List<String> pendingGuests;
-  List<String> acceptedGuest;
+  List<String> acceptedGuests;
   List<String> rejectedGuests;
-
   EventModel({
+    this.id = '',
     this.uid = '',
     this.title = '',
     this.description = '',
@@ -46,7 +47,7 @@ class EventModel {
     this.requestStatus = RequestStatus.notSent,
     List<String>? music,
     List<String>? pendingGuests,
-    List<String>? acceptedGuest,
+    List<String>? acceptedGuests,
     List<String>? rejectedGuests,
     List<String>? amenities,
     List<String>? foodsDrinks,
@@ -56,12 +57,13 @@ class EventModel {
         foodsDrinks = foodsDrinks ?? [],
         images = images ?? [],
         pendingGuests = pendingGuests ?? [],
-        acceptedGuest = acceptedGuest ?? [],
+        acceptedGuests = acceptedGuests ?? [],
         rejectedGuests = rejectedGuests ?? [];
 
   /// Convert to a Map so we can upload to Firestore easily.
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'uid': uid,
       'title': title,
       'description': description,
@@ -81,15 +83,16 @@ class EventModel {
       'foodsDrinks': foodsDrinks,
       'images': images,
       'requestStatus': requestStatus.index,
-      'pendingGuests': [],
-      'acceptedGuest': [],
-      'rejectedGuests': [],
+      'pendingGuests': pendingGuests,
+      'acceptedGuests': [uid],
+      'rejectedGuests': rejectedGuests,
     };
   }
 
   /// Factory constructor to create an EventModel from a map
   factory EventModel.fromMap(Map<String, dynamic> map) {
     return EventModel(
+      id: map['id'] ?? '',
       uid: map['uid'] ?? '',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
@@ -123,8 +126,8 @@ class EventModel {
       pendingGuests: map['pendingGuests'] != null
           ? List<String>.from(map['pendingGuests'])
           : [],
-      acceptedGuest: map['acceptedGuest'] != null
-          ? List<String>.from(map['acceptedGuest'])
+      acceptedGuests: map['acceptedGuests'] != null
+          ? List<String>.from(map['acceptedGuests'])
           : [],
       rejectedGuests: map['rejectedGuests'] != null
           ? List<String>.from(map['rejectedGuests'])

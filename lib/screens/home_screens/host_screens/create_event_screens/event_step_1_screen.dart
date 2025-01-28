@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/viewmodels/create_event_view_model.dart';
-import 'package:flutter_tipsy/viewmodels/user_model.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -27,17 +26,82 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
   String? titleError;
   String? paragraphError;
 
-  bool isAddressVisible = false;
+  bool isOpenParty = false;
   final _formKey = GlobalKey<FormState>();
+  bool isBubbleVisible = false;
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+
+  void _toggleBubble() {
+    if (isBubbleVisible) {
+      _removeBubble();
+    } else {
+      _showBubble();
+    }
+  }
+
+  void _showBubble() {
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeBubble() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      isBubbleVisible = false;
+    });
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    return OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Tap outside to close
+          GestureDetector(
+            onTap: _removeBubble,
+            child: Container(
+              color: Colors.transparent,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          ),
+
+          // Speech Bubble Positioned
+          Positioned(
+            width: 220,
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              offset: Offset(-20.w, -10.h), // Adjusts position above the widget
+              child: const SpeechBubble(
+                message:
+                    "If you have this on, there will be no limit of people who can request to join.",
+                textColor: Colors.orangeAccent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = CurrentUser().user;
+      if (currentUser == null) {
+        Navigator.pushNamed(context, '/login');
+      } else {
+        Provider.of<CreateEventViewModel>(context, listen: false).uid =
+            currentUser.uid;
+      }
+    });
+
     // Add listeners to the focus nodes
     titleFocusNode.addListener(() {
       if (!titleFocusNode.hasFocus) {
-        // Validate the title when it loses focus
         if (titleController.text.length < 5) {
           setState(() {
             titleError = "Title must be at least 5 characters long.";
@@ -52,7 +116,6 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
 
     paragraphFocusNode.addListener(() {
       if (!paragraphFocusNode.hasFocus) {
-        // Validate the paragraph when it loses focus
         if (paragraphController.text.length < 100) {
           setState(() {
             paragraphError = "Paragraph must be at least 100 characters long.";
@@ -77,17 +140,13 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
 
   @override
   Widget build(BuildContext context) {
-    final partyProvider = Provider.of<CreateEventViewModel>(context);
-    UserDataModel? currentUser = CurrentUser().user;
-    if (currentUser == null) {
-      Navigator.pushNamed(context, '/login');
-    } else {
-      partyProvider.uid = currentUser.uid;
-    }
+    final partyProvider =
+        Provider.of<CreateEventViewModel>(context, listen: false);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         padding: EdgeInsets.only(left: 4.w, right: 4.w, top: 8.h),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -148,7 +207,6 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
               },
             ),
             SizedBox(height: 4.h),
-            SizedBox(height: 4.h),
 
             // Open Party and Maximum Guests
             Row(
@@ -171,16 +229,24 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                       Row(
                         children: [
                           Switch(
-                            value: true, // Replace with actual state
                             onChanged: (value) {
-                              partyProvider.isOpenParty = value;
+                              setState(() {
+                                isOpenParty = value;
+                                partyProvider.isOpenParty = value;
+                              });
                             },
                             activeColor: primaryOrange,
+                            value: isOpenParty,
                           ),
-                          Icon(
-                            Icons.help_outline,
-                            color: primaryPink,
-                            size: 16.sp,
+                          CompositedTransformTarget(
+                            link: _layerLink,
+                            child: IconButton(
+                              icon: Icon(Icons.help_outline, size: 16.sp),
+                              color: primaryPink,
+                              onPressed: () {
+                                _toggleBubble();
+                              },
+                            ),
                           ),
                         ],
                       ),
@@ -197,6 +263,7 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
                     labelText: "Maximum Guests",
                     hintText: "150",
                     keyboardType: TextInputType.number,
+                    isDisabled: partyProvider.isOpenParty,
                     onChanged: (value) {
                       partyProvider.maxGuests = int.parse(value);
                     },
@@ -209,31 +276,6 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
               padding: EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        "Want address to be visible",
-                        style: TextStyle(
-                          color: primaryDark,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      Icon(Icons.help_outline, color: primaryPink, size: 14.sp),
-                      Spacer(),
-                      Switch(
-                        value: isAddressVisible,
-                        onChanged: (value) {
-                          setState(() {
-                            isAddressVisible = value;
-                            partyProvider.isAddressVisible = value;
-                          });
-                        },
-                        activeColor: primaryOrange,
-                      ),
-                    ],
-                  ),
                   SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
@@ -355,7 +397,73 @@ class _EventStep1ScreenState extends State<EventStep1Screen> {
             )
           ],
         ),
+        // Speech Bubble (visible when isBubbleVisible is true)
       ),
     );
   }
+}
+
+class SpeechBubble extends StatelessWidget {
+  final String message;
+  final Color backgroundColor;
+  final Color textColor;
+  final EdgeInsets padding;
+
+  const SpeechBubble({
+    Key? key,
+    required this.message,
+    this.backgroundColor = const Color(0xFF46495B),
+    this.textColor = Colors.white,
+    this.padding = const EdgeInsets.all(12),
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: CustomPaint(
+        painter: SpeechBubblePainter(backgroundColor),
+        child: Container(
+          padding: padding,
+          constraints: const BoxConstraints(maxWidth: 200),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: textColor, fontSize: 14),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SpeechBubblePainter extends CustomPainter {
+  final Color color;
+
+  SpeechBubblePainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+
+    final path = Path()
+      ..moveTo(20, 0)
+      ..lineTo(size.width - 20, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, 20)
+      ..lineTo(size.width, size.height - 20)
+      ..quadraticBezierTo(size.width, size.height, size.width - 20, size.height)
+      ..lineTo(size.width * 0.5 + 10, size.height)
+      ..lineTo(size.width * 0.5, size.height + 10) // Speech tail
+      ..lineTo(size.width * 0.5 - 10, size.height)
+      ..lineTo(20, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height - 20)
+      ..lineTo(0, 20)
+      ..quadraticBezierTo(0, 0, 20, 0)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
