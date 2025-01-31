@@ -11,6 +11,7 @@ import 'package:flutter_tipsy/widgets/show_delete_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../viewmodels/create_event_view_model.dart';
 import '../../../../viewmodels/current_user.dart';
@@ -36,16 +37,17 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
   void initState() {
     super.initState();
     _isMounted = true;
+    final partyProvider =
+        Provider.of<CreateEventViewModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentUser = CurrentUser().user;
       if (currentUser != null) {
-        final partyProvider =
-            Provider.of<CreateEventViewModel>(context, listen: false);
         partyProvider.acceptedGuests = List<String>.filled(1, currentUser.uid);
+        partyProvider.bucketId = Uuid().v4();
       }
     });
-    _loadUploadedImages();
+    _loadUploadedImages(partyProvider);
   }
 
   @override
@@ -54,7 +56,7 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
     super.dispose();
   }
 
-  Future<void> _loadUploadedImages() async {
+  Future<void> _loadUploadedImages(CreateEventViewModel partyProvider) async {
     final userViewModel = Provider.of<UserViewModel>(context, listen: false);
     if (userViewModel.userDataModel != null) {
       String uid = userViewModel.userDataModel!.uid;
@@ -64,7 +66,7 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
         // List all files in the user's directory
         ListResult result = await FirebaseStorage.instance
             .ref()
-            .child('profile_uploads/$uid')
+            .child('event_images/$uid/${partyProvider.bucketId}')
             .listAll();
 
         for (Reference ref in result.items) {
@@ -108,35 +110,44 @@ class _EventStep4ScreenState extends State<EventStep4Screen> {
     }
   }
 
-  Future<void> _uploadImage(UserDataModel userData, XFile imageFile, int index,
-      CreateEventViewModel partyProvider) async {
-    if (kIsWeb) {
-      // Handle web-specific upload
-      Uint8List fileBytes = await imageFile.readAsBytes();
-      String fileName = imageFile.name;
+  Future<void> _uploadImage(
+    UserDataModel userData,
+    XFile imageFile,
+    int index,
+    CreateEventViewModel partyProvider,
+  ) async {
+    setState(() {
+      _uploadingFlags[index] = true; // Indicate uploading state
+    });
 
-      try {
-        Reference storageRef = FirebaseStorage.instance
-            .ref()
-            .child('profile_uploads/${userData.uid}/$fileName');
+    try {
+      Reference storageRef = FirebaseStorage.instance.ref().child(
+          'event_images/${userData.uid}/${partyProvider.bucketId}/${imageFile.name}');
+
+      String downloadURL;
+
+      if (kIsWeb) {
+        Uint8List fileBytes = await imageFile.readAsBytes();
         await storageRef.putData(fileBytes);
-
-        String downloadURL = await storageRef.getDownloadURL();
-        setState(() {
-          _uploadingFlags[index] = false;
-          _downloadedImageUrls.add(downloadURL);
-          partyProvider.images = _downloadedImageUrls;
-        });
-      } catch (e) {
-        print('Error uploading image: $e');
-        setState(() {
-          _uploadingFlags[index] = false;
-        });
+        downloadURL = await storageRef.getDownloadURL();
+      } else {
+        File file = File(imageFile.path);
+        UploadTask uploadTask = storageRef.putFile(file);
+        TaskSnapshot snapshot = await uploadTask;
+        downloadURL = await snapshot.ref.getDownloadURL();
       }
-    } else {
-      // Mobile-specific upload
-      File file = File(imageFile.path);
-      // Continue with existing logic
+
+      // Store URLs temporarily in Firestore (under a `pendingUploads` collection)
+      setState(() {
+        _uploadingFlags[index] = false;
+        _downloadedImageUrls.add(downloadURL);
+        partyProvider.images = _downloadedImageUrls;
+      });
+    } catch (e) {
+      print('❌ Error uploading image: $e');
+      setState(() {
+        _uploadingFlags[index] = false; // Reset uploading flag on error
+      });
     }
   }
 

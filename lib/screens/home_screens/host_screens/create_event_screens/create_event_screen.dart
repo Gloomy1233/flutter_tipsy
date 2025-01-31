@@ -193,6 +193,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       });
       try {
         await _createEventScreenViewModel.savePartyToFirestore();
+
         setState(() {
           _isLoading = false;
         });

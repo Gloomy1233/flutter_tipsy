@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/create_event_screen.dart';
 
+import '../screens/home_screens/host_screens/organizer_screens/organizer_screen.dart';
 import '../screens/home_screens/user_screens/search_event_screen.dart';
 
 // Colors
@@ -25,6 +26,12 @@ const Color shapeColor3Light = Color(0x90F5C8A3);
 
 const LinearGradient gradient = LinearGradient(
   colors: [primaryPink, shapeColor3],
+  begin: Alignment.centerLeft,
+  end: Alignment.centerRight,
+);
+
+const LinearGradient gradientGreen = LinearGradient(
+  colors: [Colors.greenAccent, Colors.purpleAccent],
   begin: Alignment.centerLeft,
   end: Alignment.centerRight,
 );
@@ -63,7 +70,7 @@ const screensMainScreenHost = [
   Center(child: Text("Blocked Users", style: TextStyle(fontSize: 24))),
   Center(child: Text("Statistics", style: TextStyle(fontSize: 24))),
   CreateEventScreen(),
-  Center(child: Text("Organizer", style: TextStyle(fontSize: 24))),
+  OrganizerScreen(),
   Center(child: Text("Swap User", style: TextStyle(fontSize: 24))),
 ];
 

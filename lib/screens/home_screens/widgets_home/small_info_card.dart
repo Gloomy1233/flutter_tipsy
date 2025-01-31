@@ -7,6 +7,7 @@ class SmallInfoCard extends StatelessWidget {
   final String detail1;
   final String detail2;
   final String imageUrl;
+  final double? height; // Optional height parameter
 
   const SmallInfoCard({
     super.key,
@@ -15,6 +16,7 @@ class SmallInfoCard extends StatelessWidget {
     required this.detail1,
     required this.detail2,
     required this.imageUrl,
+    this.height, // Allow passing custom height, defaults to null
   });
 
   @override
@@ -39,81 +41,81 @@ class SmallInfoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(3.w),
             child: Image.network(
               imageUrl,
-              height: 30.h,
+              height: height ?? 30.h, // Use provided height or default to 30.h
               width: double.infinity,
               fit: BoxFit.cover,
             ),
           ),
           // Text content overlaid on the image
-
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
-                padding: EdgeInsets.all(2.w),
-                decoration: BoxDecoration(
-                  borderRadius:
-                      BorderRadius.vertical(bottom: Radius.circular(3.w)),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.6),
-                      Colors.black.withOpacity(0.0),
-                    ],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ), // Semi-transparent background
-                ),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.all(2.w),
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(3.w)),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withOpacity(0.6),
+                    Colors.black.withOpacity(0.0),
+                  ],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                ), // Semi-transparent background
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Title and Subtitle
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 0.5.h),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          SizedBox(height: 1.h),
-                          // Details
-                        ],
+                      // Title and Subtitle
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            detail1,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          SizedBox(height: 0.5.h),
-                          Text(
-                            detail2,
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          SizedBox(height: 1.h),
-                        ],
+                      SizedBox(height: 0.5.h),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.white70,
+                        ),
                       ),
-                    ])),
+                      SizedBox(height: 1.h),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        detail1,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      SizedBox(height: 0.5.h),
+                      Text(
+                        detail2,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      SizedBox(height: 1.h),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

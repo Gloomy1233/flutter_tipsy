@@ -119,9 +119,19 @@ class AppThemeTextFormField extends StatelessWidget {
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.normal,
-            color: isDisabled
-                ? Colors.grey
-                : Colors.black, // Change text color when disabled
+            // color: isDisabled
+            //     ? Colors.grey
+            //     : Colors.black,
+            foreground: Paint()
+              ..shader = gradient.createShader(
+                Rect.fromLTWH(
+                  0.0,
+                  0.0,
+                  MediaQuery.of(context).size.width,
+                  MediaQuery.of(context).size.height,
+                ),
+              ),
+            // Change text color when disabled
           ),
         ),
       ],

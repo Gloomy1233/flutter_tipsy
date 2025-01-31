@@ -2,6 +2,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/screens/home_screens/host_screens/create_event_screens/create_event_screen.dart';
 import 'package:flutter_tipsy/utils/constants.dart';
+import 'package:flutter_tipsy/widgets/header_app_bar.dart';
 
 import '../../viewmodels/user_model.dart';
 import '../../widgets/background_widget.dart';
@@ -51,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      appBar: HeaderAppBar(),
       body: Stack(
         children: [
           // Background Widget

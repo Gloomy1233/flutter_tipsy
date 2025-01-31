@@ -11,7 +11,7 @@ class UserDataModel {
   final int relationshipStatus;
   final int sex;
   final String uid;
-
+  final List<String> eventIds;
   UserDataModel({
     required this.accountType,
     required this.bio,
@@ -24,6 +24,7 @@ class UserDataModel {
     required this.relationshipStatus,
     required this.sex,
     required this.uid,
+    required this.eventIds,
   });
 
   factory UserDataModel.fromMap(Map<String, dynamic> data) {
@@ -39,6 +40,8 @@ class UserDataModel {
       relationshipStatus: data['relationshipStatus'] ?? 0,
       sex: data['sex'] ?? 0,
       uid: data['uid'] ?? '',
+      eventIds:
+          data['eventIds'] != null ? List<String>.from(data['eventIds']) : [],
     );
   }
 
@@ -55,6 +58,7 @@ class UserDataModel {
       'relationshipStatus': relationshipStatus,
       'sex': sex,
       'uid': uid,
+      'eventIds': eventIds,
     };
   }
 }

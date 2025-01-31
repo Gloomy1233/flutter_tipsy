@@ -30,6 +30,9 @@ class UserViewModel extends ChangeNotifier {
             relationshipStatus: userData['relationshipStatus'] ?? 0,
             sex: userData['sex'] ?? 0,
             uid: userData['uid'] ?? '',
+            eventIds: userData['eventIds'] != null
+                ? List<String>.from(userData['eventIds'])
+                : [],
           );
 
           notifyListeners(); // Notify listeners to update UI

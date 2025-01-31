@@ -137,17 +137,17 @@ class _Step3ScreenState extends State<Step3Screen> {
                               });
                             }
                           },
-                          style: TextStyle(
-                            foreground: Paint()
-                              ..shader = gradient.createShader(
-                                Rect.fromLTWH(
-                                  0.0,
-                                  0.0,
-                                  MediaQuery.of(context).size.width / 10,
-                                  MediaQuery.of(context).size.height,
-                                ),
+                          style: TextStyle(color: primaryDark
+                              // foreground: Paint()
+                              //   ..shader = gradient.createShader(
+                              //     Rect.fromLTWH(
+                              //       0.0,
+                              //       0.0,
+                              //       MediaQuery.of(context).size.width / 10,
+                              //       MediaQuery.of(context).size.height,
+                              //     ),
+                              //   ),
                               ),
-                          ),
                           decoration: const InputDecoration(
                             border: InputBorder.none, // Remove underline
                             contentPadding: EdgeInsets.symmetric(horizontal: 8),
@@ -161,6 +161,12 @@ class _Step3ScreenState extends State<Step3Screen> {
             ),
 
             const SizedBox(height: 20),
+            Text("     Sex",
+                style: TextStyle(
+                  color: primaryDark,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w900,
+                )),
             // Sex Dropdown
             Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
@@ -188,7 +194,7 @@ class _Step3ScreenState extends State<Step3Screen> {
                             sex,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 10.sp,
+                              fontSize: 16.sp,
                               color: Colors.white, // Fallback color
                             ),
                           ),
@@ -209,12 +215,6 @@ class _Step3ScreenState extends State<Step3Screen> {
                   });
                 },
                 decoration: InputDecoration(
-                  labelText: "Sex",
-                  labelStyle: TextStyle(
-                    color: primaryOrange,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w100,
-                  ),
                   filled: true,
                   fillColor: primaryDarkLighter,
                 ),
@@ -222,6 +222,12 @@ class _Step3ScreenState extends State<Step3Screen> {
             ),
             const SizedBox(height: 20),
             // Relationship Status Dropdown
+            Text("    Relationship Status",
+                style: TextStyle(
+                  color: primaryDark,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w900,
+                )),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
               child: DropdownButtonFormField<String>(
@@ -248,7 +254,7 @@ class _Step3ScreenState extends State<Step3Screen> {
                             status,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 10.sp,
+                              fontSize: 16.sp,
                               color: Colors.white, // Fallback color
                             ),
                           ),
@@ -273,12 +279,7 @@ class _Step3ScreenState extends State<Step3Screen> {
                   //   statusOptionsIconMap[statusOptions[selectedStatus]] ??
                   //       Icons.help_outline,
                   // ),
-                  labelText: "Relationship Status",
-                  labelStyle: TextStyle(
-                    color: primaryOrange,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w100,
-                  ),
+
                   filled: true,
                   fillColor: primaryDarkLighter,
                 ),
@@ -402,10 +403,7 @@ class _DynamicBioFieldState extends State<DynamicBioField> {
                 maxLines: null, // Allow dynamic expansion
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  foreground: Paint()
-                    ..shader = gradient.createShader(
-                      const Rect.fromLTRB(0, 0, 200.0, 70.0),
-                    ),
+                  color: primaryDark,
                 ),
                 onChanged: (value) {
                   // Prevent exceeding the max character limit

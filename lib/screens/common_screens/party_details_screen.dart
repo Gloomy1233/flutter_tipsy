@@ -3,7 +3,7 @@ import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tipsy/viewmodels/event_model.dart';
 import 'package:flutter_tipsy/viewmodels/user_model.dart';
-import 'package:flutter_tipsy/viewmodels/user_view_model.dart';
+import 'package:map_launcher/map_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -48,7 +48,8 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
       profilePictureUrl: '',
       relationshipStatus: 0,
       sex: 0,
-      uid: '');
+      uid: '',
+      eventIds: []);
 
   double _bottomContainerHeightFactor = 0.3;
 
@@ -65,20 +66,50 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
   }
 
   /// Example Firestore fetch. Replace with your collection and field as needed.
-  Future<void> fetchImagesFromFirestore() async {
+
+  Future<void> _showMapsSheet() async {
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('yourCollectionName') // Replace with your collection
-          .get();
+      // 1) Get list of installed maps on the device
+      final availableMaps = await MapLauncher.installedMaps;
 
-      // Collect the image URLs from the docs
-      _images = snapshot.docs.map((doc) {
-        return doc['imageUrl'] as String;
-      }).toList();
-
-      setState(() {}); // Trigger rebuild after fetching
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var map in availableMaps)
+                  ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openMap(map);
+                    },
+                    title: Text(map.mapName),
+                    leading: Icon(Icons.map),
+                  ),
+              ],
+            ),
+          );
+        },
+      );
     } catch (e) {
-      debugPrint('Error fetching images: $e');
+      print('Error showing maps: $e');
+    }
+  }
+
+  Future<void> _openMap(AvailableMap map) async {
+    // 2) Once user selects a map, open the marker
+    try {
+      await map.showMarker(
+        coords: Coords(
+            (widget.eventModel!.location?['geopoint'] as GeoPoint).latitude,
+            (widget.eventModel!.location?['geopoint'] as GeoPoint).longitude),
+        title: "Some Location",
+        description: "A nice place to visit",
+      );
+    } catch (e) {
+      print('Error opening map: $e');
     }
   }
 
@@ -141,7 +172,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
       party = widget.eventModel!;
     }
 
-    final userViewModel = context.watch<UserViewModel>();
+    final userViewModel = CurrentUser().user;
     fetchUserId(party.uid);
     // Example usage of your fields:
     final String partyTitle = party.title;
@@ -203,22 +234,21 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
           ),
 
           // 2) Cancel / Back Button
-          if (widget.isPreview != false)
-            SafeArea(
-              minimum: EdgeInsets.only(
-                left: 45.w,
-                top: 5.h * _bottomContainerHeightFactor,
-                right: 45.w,
-              ),
-              child: IconButton(
-                icon: Icon(
-                  Icons.cancel_rounded,
-                  color: Colors.white,
-                  size: 10.w,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
+          // SafeArea(
+          //   minimum: EdgeInsets.only(
+          //     left: 45.w,
+          //     top: 5.h,
+          //     right: 45.w,
+          //   ),
+          //   child: IconButton(
+          //     icon: Icon(
+          //       Icons.cancel_rounded,
+          //       color: Colors.white,
+          //       size: 10.w,
+          //     ),
+          //     onPressed: () => Navigator.pop(context),
+          //   ),
+          // ),
 
           // 3) Left and Right Arrows
           Positioned(
@@ -411,7 +441,7 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                           Expanded(
                                             child: GestureDetector(
                                               onTap: () {
-                                                // Request to see location action
+                                                _showMapsSheet();
                                               },
                                               child: Wrap(
                                                 children: [
@@ -419,9 +449,10 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                                                   SizedBox(width: 1.w),
                                                   Text(
                                                     party.isAddressVisible ||
-                                                            party.requestStatus ==
-                                                                RequestStatus
-                                                                    .accepted
+                                                            party.acceptedGuests
+                                                                .contains(
+                                                                    userViewModel
+                                                                        ?.uid)
                                                         ? party.address
                                                         : "Request to see location",
                                                     style: TextStyle(
@@ -641,14 +672,14 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
           ),
 
           // 5) "Request" Button
-          SafeArea(
-              minimum: EdgeInsets.only(
-                left: 25.w,
-                right: 25.w,
-                top: 95.h,
-                bottom: -10.h,
-              ),
+          Positioned(
+              left: 25.w,
+              right: 25.w,
+              bottom: 0,
               child: GradientButton(
+                icon: status == GuestStatus.accepted
+                    ? Icon(Icons.gps_fixed_sharp)
+                    : Icon(Icons.hotel_class_outlined),
                 onPressed: () async {
                   if (status == GuestStatus.none) {
                     try {
@@ -698,14 +729,14 @@ class _PartyDetailPageState extends State<PartyDetailPage> {
                   }
                 },
                 textColor: status == GuestStatus.accepted
-                    ? primaryDark
+                    ? Colors.white
                     : status == GuestStatus.pending
                         ? Colors.white
                         : status == GuestStatus.rejected
                             ? Colors.white
                             : primaryDark,
                 gradientBg: status == GuestStatus.accepted
-                    ? gradient
+                    ? gradientGreen
                     : status == GuestStatus.pending
                         ? gradient1
                         : status == GuestStatus.rejected

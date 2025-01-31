@@ -5,6 +5,7 @@ import '../utils/enums.dart';
 class EventModel {
   String? id;
   String uid = '';
+  String bucketId = '';
   String title = '';
   String description = '';
   String geohash = '';
@@ -30,6 +31,7 @@ class EventModel {
   EventModel({
     this.id = '',
     this.uid = '',
+    this.bucketId = '',
     this.title = '',
     this.description = '',
     this.geohash = '',
@@ -65,6 +67,7 @@ class EventModel {
     return {
       'id': id,
       'uid': uid,
+      'bucketId': bucketId,
       'title': title,
       'description': description,
       'type': type,
@@ -94,6 +97,7 @@ class EventModel {
     return EventModel(
       id: map['id'] ?? '',
       uid: map['uid'] ?? '',
+      bucketId: map['bucketId'] ?? '',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       type: map['type'] ?? 'upcomingEvent',

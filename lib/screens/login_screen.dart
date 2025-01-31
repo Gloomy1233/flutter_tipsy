@@ -13,6 +13,7 @@ import 'package:sizer/sizer.dart';
 import '../utils/ThemePreferences.dart';
 import '../viewmodels/current_user.dart';
 import '../viewmodels/user_model.dart';
+import '../widgets/background_widget.dart';
 import '../widgets/logo_selection.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -87,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       setState(() {
-        errorMessage = 'An unexpected error occurred.';
+        errorMessage = 'An unexpected error occurred. $e';
         isLoading = false;
       });
     }
@@ -123,102 +124,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       // Use Stack to layer background shapes and content
       // Add the drawer here
-      drawer: Drawer(
-        child: Column(
-          children: [
-            // Drawer Header
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: AssetImage(
-                        'assets/avatar.png'), // Replace with your image
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Amazing Skirt',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Text(
-                    'Primary account',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Drawer Items
-            Expanded(
-              child: ListView(
-                children: const [
-                  ListTile(
-                    leading: Icon(Icons.sync),
-                    title: Text('Connection and sync'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.account_balance_wallet),
-                    title: Text('Wallets'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.contacts),
-                    title: Text('Address book'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.security),
-                    title: Text('Security and backup'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.privacy_tip),
-                    title: Text('Privacy'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.settings),
-                    title: Text('Display settings'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.help),
-                    title: Text('Support'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ), // AppBar with Menu Icon
-      appBar: AppBar(
-        title: const Text('Drawer Example'),
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context)
-                    .openDrawer(); // Open the drawer programmatically
-              },
-            );
-          },
-        ),
-      ),
 
       body: Stack(
         children: [
+          Positioned.fill(child: BackgroundWidget()),
           SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
@@ -227,7 +136,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   SizedBox(height: 6.h),
                   const LogoSection(),
-                  SizedBox(height: 4.h),
                   const WelcomeText(),
                   SizedBox(height: 2.h),
                   EmailInput(controller: emailController),
@@ -271,7 +179,7 @@ class EmailInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    controller.text = "nikos123@gmail.com";
+    controller.text = "nikos@gmail.com";
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 6.w),
       child: TextField(
@@ -292,6 +200,52 @@ class EmailInput extends StatelessWidget {
   }
 }
 
+Future<void> createEvent() async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  Map<String, dynamic> eventData = {
+    "id": "4MslNx5HzxEylorsBQQN",
+    "acceptedGuests": ["iFKridx6UMc6rFrmyeqxhhsulI42"],
+    "address":
+        "73 Financial Center Rd - Downtown Dubai - Dubai - United Arab Emirates",
+    "amenities": [],
+    "currGuests": 0,
+    "date": Timestamp.fromDate(DateTime(2025, 1, 30, 1, 5)),
+    "description":
+        "Join us for a night of music, drinks, and fun! Great vibes, great people—don’t miss out!",
+    "foodsDrinks": [],
+    "geoPoint": GeoPoint(25.1967091, 55.2795961),
+    "geohash": "thrr3fvm7",
+    "images": [
+      "https://firebasestorage.googleapis.com/v0/b/tipsyapp-c8bff.firebasestorage.app/o/event_images%2FiFKridx6UMc6rFrmyeqxhhsulI42%2F1000002204.jpg?alt=media&token=9237c6c9-ed09-470f-ade5-9e170e62a69c",
+      "https://firebasestorage.googleapis.com/v0/b/tipsyapp-c8bff.firebasestorage.app/o/event_images%2FiFKridx6UMc6rFrmyeqxhhsulI42%2F1000002203.jpg?alt=media&token=bdf21ce8-6abc-4b13-8f06-f502ea631737",
+      "https://firebasestorage.googleapis.com/v0/b/tipsyapp-c8bff.firebasestorage.app/o/event_images%2FiFKridx6UMc6rFrmyeqxhhsulI42%2F1000002205.jpg?alt=media&token=0dbc1695-54a8-4515-a659-6ac7e130154b",
+    ],
+    "isAddressVisible": true,
+    "isOpenParty": false,
+    "location": {
+      "geohash": "thrr3fvm7",
+      "geopoint": GeoPoint(25.1967091, 55.2795961),
+    },
+    "maxGuests": 12,
+    "music": ["1PozIGDRHyH5N2weBRP5"],
+    "pendingGuests": [],
+    "rejectedGuests": [],
+    "requestStatus": 0,
+    "timestamp": Timestamp.fromDate(DateTime(2025, 1, 30, 1, 5)),
+  };
+
+  try {
+    await firestore
+        .collection("events")
+        .doc("4MslNx5HzxEylorsBQQN")
+        .set(eventData);
+    print("Event successfully created!");
+  } catch (e) {
+    print("Error creating event: $e");
+  }
+}
+
 class PasswordInput extends StatefulWidget {
   final TextEditingController controller;
 
@@ -306,7 +260,7 @@ class _PasswordInputState extends State<PasswordInput> {
 
   @override
   Widget build(BuildContext context) {
-    widget.controller.text = "19961996";
+    widget.controller.text = "nikolas1996";
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 6.w),
       child: TextField(

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
+import 'current_user.dart';
 import 'event_model.dart';
 
 class CreateEventViewModel extends ChangeNotifier {
@@ -12,9 +14,19 @@ class CreateEventViewModel extends ChangeNotifier {
   // 2) Create a getter (no parentheses) to expose _partyData:
   EventModel get partyData => _partyData;
 
+  set id(String value) {
+    _partyData.id = value;
+    notifyListeners();
+  }
+
   /// Example of setting fields
   set uid(String value) {
     _partyData.uid = value;
+    notifyListeners();
+  }
+
+  set bucketId(String value) {
+    _partyData.bucketId = value;
     notifyListeners();
   }
 
@@ -54,6 +66,8 @@ class CreateEventViewModel extends ChangeNotifier {
   }
 
   bool get isOpenParty => _partyData.isOpenParty;
+
+  String get bucketId => _partyData.bucketId;
 
   set isOpenParty(bool value) {
     _partyData.isOpenParty = value;
@@ -122,6 +136,31 @@ class CreateEventViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> moveImages(
+      List<String> sourcePath, List<String> destinationPath) async {
+    try {
+      FirebaseStorage storage = FirebaseStorage.instance;
+      for (int i = 0; i < sourcePath.length; i++) {
+        // 🔹 Get source and destination references
+        Reference sourceRef = storage.ref(sourcePath[i]);
+        Reference destinationRef = storage.ref(destinationPath[i]);
+
+        // 🔹 Get download URL
+        String downloadURL = await sourceRef.getDownloadURL();
+
+        // 🔹 Upload file from the URL to new location
+        UploadTask uploadTask = destinationRef.putString(downloadURL);
+        await uploadTask;
+
+        // 🔹 Delete original file
+        await sourceRef.delete();
+      }
+      print('✅ Image moved successfully from $sourcePath to $destinationPath');
+    } catch (e) {
+      print('Error moving image: $e');
+    }
+  }
+
   /// Finally: a method to save to Firestore
   Future<void> savePartyToFirestore() async {
     try {
@@ -130,11 +169,12 @@ class CreateEventViewModel extends ChangeNotifier {
           .doc(); // Generate a new doc ID
       _partyData.id =
           eventRef.id; // Store Firestore-generated ID inside the event
-
+      final String? currentUserId = CurrentUser().user?.uid;
       await eventRef.set(_partyData.toMap()); // Save event to Firestore
-
+      await eventRef.collection('users').doc(currentUserId).set({
+        'eventIds': FieldValue.arrayUnion([eventRef.id])
+      }, SetOptions(merge: true));
       print("Event saved successfully with ID: ${_partyData.id}");
-
       // Clear or reset data after saving
       _partyData = EventModel();
       notifyListeners();
